@@ -1,0 +1,54 @@
+----------------3 Types de combat :-------------------
+
+-Normal :
+Eliminer les adversaires a coup de bombe. Le survivant remporte la victoire.
+
+-Couronne :
+Le premier joueur a toucher la couronne remporte la vitoire.
+
+-Pane Battle (Combat de sol)
+Faite expoloser le sol pour qu'il prenne votre couleur. Le joueur dont la couleur est la plus répandue gagne.
+
+----------------Equipe----------------
+
+Minimum deux équipes jusqu'à 4 joueurs.
+
+----------------Handicap----------------
+
+Un menu pour choisir qui disposera d'un avantage. On selectionne le joueur et on lui rajoute des bonus.
+(max 6 ?)
+
+----------------Jackpot----------------
+
+Si le mode jackpot est activé, en début de combat, le joueur remporte des objets bonus pour la partie. Les objets que vous obtenezau cours d'un combat sont conservé pour le combat suivant.
+
+----------------Regles----------------
+
+Sets -> nb de victoire pour devenir champion.
+Muraille -> activer cette options et des blocs tomberont d'en haut jusqu'a la fin du temps réglementaire.
+Veng. -> Meme après avoir été vaincu vous pouvez lancé une attaque depuis l'exterieur.
+Crane -> Determiner si l'option crane est activé
+Temps -> Durée limite du combat. Lorsque le parametre Tiebreak esty desactivé (non) il peux y avoir match nul en fin de partie.
+Jackpot -> Determiner si l'option Jackpot est activée.
+Pos -> Determinez la position de départ du combat : fixe ou au hasard.
+
+----------------Vengeance----------------
+
+Non : desactive
+Oui : on peux lancer des bombes
+Super : si on tue qq avec les bombes on reviens a la vie
+
+----------------Crane----------------
+
+Maladie dure une minute lorsque l'on attrape un crane
+Les cranes ne peuvent pas etre casser avec des bombes
+Pour guérir il faut toucher un autre joueur pour l'infecter(sauf si cette personne a deja été infecter)
+Ou alors si on meure ou on attend une minute
+
+Type de maladie :
+-> speed down (le minimum possible)
+-> aucune bombe (on ne peux pas placer de bombe)
+-> diarrhé (les bombes seront placées sans aucun controle)
+-> plus un geste(parfois vous ne pourrez plus vous déplacer)
+
+----------------Mode de jeux
