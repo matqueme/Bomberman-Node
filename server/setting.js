@@ -1,5 +1,7 @@
 const { players } = require('./players.js');
 const { bomb } = require('./bomb.js');
+const { explosion } = require('./explosion.js');
+const { item } = require('./item.js');
 
 class Settings {
     constructor() {
@@ -22,9 +24,10 @@ class Settings {
         let player;
         let tabplayers = [];
         let tabBomb = [];
+        let tabExplosion = [];
+        let tabItem = [];
         for (let i = 0; i < numberofplayer.length; i++) {
             player = new players(24, 56, numberofplayer[i]);
-            //console.log(player)
             tabplayers.push(player);
         }
         //map
@@ -53,9 +56,9 @@ class Settings {
         ];
 
         //generation des walls
-        //map = this.numberOfWallGenerate(map);
+        map = this.numberOfWallGenerate(map);
 
-        let game = { room, tabplayers, map, tabBomb };
+        let game = { room, tabplayers, map, tabBomb, tabExplosion, tabItem };
         this.game.push(game);
     }
 
@@ -72,6 +75,48 @@ class Settings {
     updatePlayer(numbertab, room, tabplayers) {
         let roomgame = this.game.filter((user) => user.room === room);
         Object.assign(roomgame[0].tabplayers[numbertab], tabplayers);
+    }
+
+    updateBomb() {
+        for (let i = 0; i < this.settings.length; i++) {
+            if (this.settings[i].state == 1) {
+                let room = this.settings[i].room;
+                let roomgame = this.game.filter((user) => user.room === room);
+                let tabBomb = roomgame[0].tabBomb;
+                let tabExplosion = roomgame[0].tabExplosion;
+
+                for (let i = 0; i < tabBomb.length; i++) {
+                    //si ca explose on le supprime tu tab et on affiche explosion
+                    tabBomb[i].timeBeforeExplosion();
+                    if (tabBomb[i].isExplosed()) {
+                        if (tabBomb[i].isExplosed2()) {
+                            this.explosionOfBomb(tabBomb[i].getx, tabBomb[i].gety, tabBomb[i].getpower, roomgame);
+                            //suppression de la map
+                            this.deletetabomb(tabBomb[i].getx, tabBomb[i].gety, roomgame);
+                        }
+                        if (tabBomb[i].explosionFrameIsDone()) {
+                            //suppresion du tableau
+                            tabBomb.splice(i, 1);
+                        } else {
+                            tabBomb[i].handleExplosionFrame();
+                        }
+                    } else {
+                        //on affiche la bombe
+                        tabBomb[i].handleBombFrame();
+                    }
+                }
+
+                for (let i = 0; i < tabExplosion.length; i++) {
+                    if (tabExplosion[i].explosionFrameIsDone()) {
+                        //suppresion du tableau
+                        tabExplosion.splice(i, 1);
+                    } else {
+                        tabExplosion[i].handleExplosionFrame();
+                    }
+                }
+                this.playerOnItem(roomgame);
+            }
+        }
     }
 
     //supprimer un settings
@@ -129,7 +174,6 @@ class Settings {
             indexesI.splice(alea, 1);
             indexesJ.splice(alea, 1);
         }
-        console.log(map)
         return map;
     }
 
@@ -155,21 +199,184 @@ class Settings {
         if (!bombeexistante) {
             let bombe = new bomb(Math.round(x), Math.round(y), new Date(), player.bombpower, player.bombtype, player.numberplayer);
             game.tabBomb.push(bombe);
-            //map[Math.round(y)][Math.round(x)] = 'b';
+            game.map[Math.round(y)][Math.round(x)] = 'b';
         }
     }
 
-    maxBombPlace(player, numberofbomb) {
-        let number = 0;
-        for (let i = 0; i < tabBomb.length; i++) {
-            if (tabBomb[i].getNumberPlayer == player) {
-                number++;
+    explosionOfBomb(x, y, power, paramroom) {
+        let roomgame = paramroom;
+        let tabBomb = roomgame[0].tabBomb;
+        let tabExplosion = roomgame[0].tabExplosion;
+        let tabItem = roomgame[0].tabItem;
+        let map = roomgame[0].map;
+        //droite
+        for (let i = 1; i <= power; i++) {
+            //bombe
+            if (x + i < map[0].length) {
+                //bombe
+                if (map[y][x + i] === 'b') {
+                    tabBomb.find(x1 => x1.x === (i + x) && x1.y === y).forceExplosion();
+                }
+                //unbreakeable
+                else if (map[y][x + i] === 'x') {
+                    i = power + 1;
+                }
+                //wall
+                else if (map[y][x + i] === 'w') {
+                    map[y][x + i] = '0';
+                    //generer des items
+                    this.isItemGenerate(x + i, y, tabItem);
+                    //pour casser que un mur
+                    i = power + 1;
+                } else {
+                    let explosionfct;
+                    if (this.explosionTabExist(x + i, y, tabExplosion)) {
+                        if (i === power) {
+                            explosionfct = new explosion(x + i, y, 4, 16);
+                        } else {
+                            explosionfct = new explosion(x + i, y, 4, 15);
+                        }
+                        tabExplosion.push(explosionfct);
+                    }
+                }
             }
         }
-        if (numberofbomb <= number) {
+
+        //gauche
+        for (let i = 1; i <= power; i++) {
+            if (x - i >= 0) {
+                //bombe
+                if (map[y][x - i] === 'b') {
+                    tabBomb.find(x1 => x1.x === (x - i) && x1.y === y).forceExplosion();
+                }
+                //unbreakeable
+                else if (map[y][x - i] === 'x') {
+                    i = power + 1;
+                }
+                //wall
+                else if (map[y][x - i] === 'w') {
+                    map[y][x - i] = '0';
+                    //generer des items
+                    this.isItemGenerate(x - i, y, tabItem);
+                    //pour casser que un mur
+                    i = power + 1;
+                } else {
+                    if (this.explosionTabExist(x - i, y, tabExplosion)) {
+                        let explosionfct;
+                        if (i === power) {
+                            explosionfct = new explosion(x - i, y, 4, 14);
+                        } else {
+                            explosionfct = new explosion(x - i, y, 4, 13);
+                        }
+                        tabExplosion.push(explosionfct);
+                    }
+                }
+            }
+        }
+
+        //bas
+        for (let i = 1; i <= power; i++) {
+            if (y + i < map.length) {
+                //bombe
+                if (map[y + i][x] === 'b') {
+                    tabBomb.find(x1 => x1.x === x && x1.y === (y + i)).forceExplosion();
+                }
+                //unbreakeable
+                else if (map[y + i][x] === 'x') {
+                    i = power + 1;
+                }
+                //wall
+                else if (map[y + i][x] === 'w') {
+                    map[y + i][x] = '0';
+                    //generer des items
+                    this.isItemGenerate(x, y + i, tabItem);
+                    //pour casser que un mur
+                    i = power + 1;
+                } else {
+                    if (this.explosionTabExist(x, y + i, tabExplosion)) {
+                        let explosionfct;
+                        if (i === power) {
+                            explosionfct = new explosion(x, y + i, 4, 12);
+                        } else {
+                            explosionfct = new explosion(x, y + i, 4, 11);
+                        }
+                        tabExplosion.push(explosionfct);
+                    }
+                }
+            }
+
+        }
+
+        //haut
+        for (let i = 1; i <= power; i++) {
+            if (y - i >= 0) {
+                //bombe
+                if (map[y - i][x] === 'b') {
+                    tabBomb.find(x1 => x1.x === x && x1.y === (y - i)).forceExplosion();
+                }
+                //unbreakeable
+                else if (map[y - i][x] === 'x') {
+                    i = power + 1;
+                }
+                //wall
+                else if (map[y - i][x] === 'w') {
+                    map[y - i][x] = '0';
+                    //generer des items
+                    this.isItemGenerate(x, y - i, tabItem);
+                    //pour casser que un mur
+                    i = power + 1;
+                } else {
+                    if (this.explosionTabExist(x, y - i, tabExplosion)) {
+                        let explosionfct;
+                        if (i === power) {
+                            explosionfct = new explosion(x, y - i, 4, 8);
+                        } else {
+                            explosionfct = new explosion(x, y - i, 4, 9);
+                        }
+                        tabExplosion.push(explosionfct);
+                    }
+                }
+            }
+        }
+    }
+
+    explosionTabExist(x, y, tabExplosion) {
+        if (tabExplosion.find(x1 => x1.x === (x) && x1.y === y)) {
             return false;
         }
-        return true;
+        return true
+    }
+
+    //supprime la bombe qui a explosé du tableau
+    deletetabomb(x, y, roomgame) {
+        roomgame[0].map[y][x] = '0';
+    }
+
+    /*----------------------------ITEM--------------------------- */
+
+    isItemGenerate(x, y, tabItem) {
+        let probaItem = this.getRandomArbitrary(0, 100);
+        if (probaItem > 50) {
+            let items = new item(x, y);
+            items.generateteItem();
+            tabItem.push(items);
+
+        }
+    }
+
+    playerOnItem(paramroom) {
+        let tabItem = paramroom[0].tabItem;
+        let tabplayers = paramroom[0].tabplayers;
+        for (let i = 0; i < tabItem.length; i++) {
+            {
+                for (let j = 0; j < tabplayers.length; j++) {
+                    if (tabplayers[j].boxX == tabItem[i].x && tabplayers[j].boxY == tabItem[j].y) {
+                        tabplayers[j].powerUp(tabItem[i].type);
+                        tabItem.splice(i, 1);
+                    }
+                }
+            }
+        }
     }
 
 

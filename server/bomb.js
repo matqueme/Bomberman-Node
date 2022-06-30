@@ -104,18 +104,6 @@ class bomb {
         return false;
     }
 
-    //affiche les bombes sur la map !
-    drawbomb(constmapleft, constmapUp, ctx, img) {
-        ctx.drawImage(img, this.frameX * this.width, this.frameY * this.height, this.width, this.height, this.x * 64 + constmapleft, this.y * 64 + constmapUp - 12, this.width * 4, this.height * 4);
-
-    }
-
-    //affiche les explosions
-    drawExplosion(constmapleft, constmapUp, ctx, img) {
-        ctx.drawImage(img, (this.frameExplosionX - 1) * this.width, this.frameExplosionY * this.height, this.width, this.height, this.x * 64 + constmapleft, this.y * 64 + constmapUp, this.width * 4, this.height * 4);
-    }
-
-
 }
 
 module.exports = { bomb }

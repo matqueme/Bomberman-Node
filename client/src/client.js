@@ -147,22 +147,32 @@ const getGameParam = (param) => {
         tabplayers.push(playertemp);
     }
 
-    map = param.map;
-}
-
-const getGameParam2 = (param, nbtab) => {
-    Object.assign(tabplayers[nbtab], param);
-}
-
-const bombParam = (param) => {
     let bombtemp;
     tabBomb = [];
-    for (let i = 0; i < param.length; i++) {
-        bombtemp = new bomb(param[i]);
+    for (let i = 0; i < param.tabBomb.length; i++) {
+        bombtemp = new bomb(param.tabBomb[i]);
         tabBomb.push(bombtemp);
     }
 
+    let explosiontemp;
+    tabExplosion = [];
+
+    for (let i = 0; i < param.tabExplosion.length; i++) {
+        explosiontemp = new explosion(param.tabExplosion[i]);
+        tabExplosion.push(explosiontemp);
+    }
+
+    let itemtemp;
+    tabItem = [];
+
+    for (let i = 0; i < param.tabItem.length; i++) {
+        itemtemp = new item(param.tabItem[i]);
+        tabItem.push(itemtemp);
+    }
+
+
     map = param.map;
+
 }
 
 //SEND
@@ -235,10 +245,6 @@ const sock = io();
 
     sock.on('paramGame', getGameParam);
 
-    sock.on('paramGame2', getGameParam2);
-
-    sock.on('bombParam', bombParam);
-
     //------------SEND------------
     document
         .querySelector('#chat-form')
@@ -294,8 +300,6 @@ function movePlayer() {
     var yTab2 = Math.ceil((tabplayers[playernumberTab].hitboxY - mapConstant.startUp) / (16 * 4));
     var xTab2 = Math.ceil((tabplayers[playernumberTab].hitboxX - mapConstant.startLeft) / (16 * 4));
 
-    //console.log("x: ", x, "y: ", y, "xTab: ", xTab, "yTab: ", yTab, "xTab2: ", xTab2, "yTab2: ", yTab2);
-
     //quand on click sur les touches
     if (keys['ArrowLeft'] || keys['q']) {
         tabplayers[playernumberTab].collideWallLeft(x, y, xTab2, yTab2, map);
@@ -328,23 +332,6 @@ function movePlayer() {
 
 /*----------------------------------BOMBE-----------------------------------*/
 
-//mettre des bombes sur la carte, prise en compte des autres bombe
-function placeBomb(x, y) {
-    var bombeexistante = false;
-    //si une bombe est deja dans le tableau a cette position, on ne pose pas de bombe
-    for (var i = 0; i < tabBomb.length; i++) {
-        if (tabBomb[i].x == Math.round(x) && tabBomb[i].y == Math.round(y)) {
-            bombeexistante = true;
-        }
-    }
-    //si y a pas de bombe on met une bombe
-    if (!bombeexistante) {
-        let bombe = new bomb(Math.round(x), Math.round(y), new Date(), player.bombpower, player.bombtype, player.getNumberPlayer);
-        tabBomb.push(bombe);
-        map[Math.round(y)][Math.round(x)] = 'b';
-    }
-}
-
 //si le joueur a placer son nb max de bombe
 function maxBombPlace(player, numberofbomb) {
     let number = 0;
@@ -359,210 +346,8 @@ function maxBombPlace(player, numberofbomb) {
     return true;
 }
 
-//lorqu'une bombe explose (mure,muree incassable, bombe et joueur)
-function explosionOfBomb(x, y, power) {
-
-    //droite
-    for (let i = 1; i <= power; i++) {
-        //bombe
-        if (x + i < map[0].length) {
-            //bombe
-            if (map[y][x + i] === 'b') {
-                tabBomb.find(x1 => x1.x === (i + x) && x1.y === y).forceExplosion();
-            }
-            //unbreakeable
-            else if (map[y][x + i] === 'x') {
-                i = power + 1;
-            }
-            //wall
-            else if (map[y][x + i] === 'w') {
-                map[y][x + i] = '0';
-                //generer des items
-                isItemGenerate(x + i, y);
-                //pour casser que un mur
-                i = power + 1;
-            } else {
-                let explosionfct;
-                if (explosionTabExist(x + i, y)) {
-                    if (i === power) {
-                        explosionfct = new explosion(x + i, y, 4, 16);
-                    } else {
-                        explosionfct = new explosion(x + i, y, 4, 15);
-                    }
-                    tabExplosion.push(explosionfct);
-                }
-            }
-        }
-    }
-
-    //gauche
-    for (let i = 1; i <= power; i++) {
-        if (x - i >= 0) {
-            //bombe
-            if (map[y][x - i] === 'b') {
-                tabBomb.find(x1 => x1.x === (x - i) && x1.y === y).forceExplosion();
-            }
-            //unbreakeable
-            else if (map[y][x - i] === 'x') {
-                i = power + 1;
-            }
-            //wall
-            else if (map[y][x - i] === 'w') {
-                map[y][x - i] = '0';
-                //generer des items
-                isItemGenerate(x - i, y);
-                //pour casser que un mur
-                i = power + 1;
-            } else {
-                if (explosionTabExist(x - i, y)) {
-                    let explosionfct;
-                    if (i === power) {
-                        explosionfct = new explosion(x - i, y, 4, 14);
-                    } else {
-                        explosionfct = new explosion(x - i, y, 4, 13);
-                    }
-                    tabExplosion.push(explosionfct);
-                }
-            }
-        }
-    }
-
-    //bas
-    for (let i = 1; i <= power; i++) {
-        if (y + i < map.length) {
-            //bombe
-            if (map[y + i][x] === 'b') {
-                tabBomb.find(x1 => x1.x === x && x1.y === (y + i)).forceExplosion();
-            }
-            //unbreakeable
-            else if (map[y + i][x] === 'x') {
-                i = power + 1;
-            }
-            //wall
-            else if (map[y + i][x] === 'w') {
-                map[y + i][x] = '0';
-                //generer des items
-                isItemGenerate(x, y + i);
-                //pour casser que un mur
-                i = power + 1;
-            } else {
-                if (explosionTabExist(x, y + i)) {
-                    let explosionfct;
-                    if (i === power) {
-                        explosionfct = new explosion(x, y + i, 4, 12);
-                    } else {
-                        explosionfct = new explosion(x, y + i, 4, 11);
-                    }
-                    tabExplosion.push(explosionfct);
-                }
-            }
-        }
-
-    }
-
-    //haut
-    for (let i = 1; i <= power; i++) {
-        if (y - i >= 0) {
-            //bombe
-            if (map[y - i][x] === 'b') {
-                tabBomb.find(x1 => x1.x === x && x1.y === (y - i)).forceExplosion();
-            }
-            //unbreakeable
-            else if (map[y - i][x] === 'x') {
-                i = power + 1;
-            }
-            //wall
-            else if (map[y - i][x] === 'w') {
-                map[y - i][x] = '0';
-                //generer des items
-                isItemGenerate(x, y - i);
-                //pour casser que un mur
-                i = power + 1;
-            } else {
-                if (explosionTabExist(x, y - i)) {
-                    let explosionfct;
-                    if (i === power) {
-                        explosionfct = new explosion(x, y - i, 4, 8);
-                    } else {
-                        explosionfct = new explosion(x, y - i, 4, 9);
-                    }
-                    tabExplosion.push(explosionfct);
-                }
-            }
-        }
-    }
-
-}
-
-function explosionTabExist(x, y) {
-    if (tabExplosion.find(x1 => x1.x === (x) && x1.y === y)) {
-        return false;
-    }
-    return true
-}
-//supprime la bombe qui a explosé du tableau
-function deletetabomb(x, y) {
-    map[y][x] = '0';
-}
-
-//fonction generale pour les tests de bombe
-function bombGeneral() {
-    for (let i = 0; i < tabBomb.length; i++) {
-        //si ca explose on le supprime tu tab et on affiche explosion
-        tabBomb[i].timeBeforeExplosion();
-        if (tabBomb[i].isExplosed()) {
-            if (tabBomb[i].isExplosed2()) {
-                explosionOfBomb(tabBomb[i].getx, tabBomb[i].gety, tabBomb[i].getpower);
-                //suppression de la map
-                deletetabomb(tabBomb[i].getx, tabBomb[i].gety);
-            }
-            if (tabBomb[i].explosionFrameIsDone()) {
-                //suppresion du tableau
-                tabBomb.splice(i, 1);
-            } else {
-                tabBomb[i].handleExplosionFrame();
-            }
-        } else {
-            //on affiche la bombe
-            tabBomb[i].handleBombFrame();
-        }
-    }
-    for (let i = 0; i < tabExplosion.length; i++) {
-        if (tabExplosion[i].explosionFrameIsDone()) {
-            //suppresion du tableau
-            tabExplosion.splice(i, 1);
-        } else {
-            tabExplosion[i].handleExplosionFrame();
-        }
-    }
-}
-
-/*----------------------------ITEM--------------------------- */
-
-function isItemGenerate(x, y) {
-    let probaItem = getRandomArbitrary(0, 100);
-    if (probaItem > 50) {
-        let items = new item(x, y);
-        items.generateteItem();
-        tabItem.push(items);
-
-    }
-}
-
-function playerOnItem() {
-    for (let i = 0; i < tabItem.length; i++) {
-        {
-            if (player.boxX == tabItem[i].getX && player.boxY == tabItem[i].getY) {
-                player.powerUp(tabItem[i].getType);
-                tabItem.splice(i, 1);
-            }
-        }
-    }
-}
 
 /*-----------------WALL------------------- */
-
-
 
 function placeWallSprite() {
     for (let i = 0; i < map.length; i++)
@@ -599,11 +384,6 @@ function animate() {
             then = now - (elapsed % fpsInterval);
             //deplacement du joueur
             tabplayers[playernumberTab].handlePlayerFrame();
-            //pour les bombes
-            bombGeneral();
-            //pour les items
-            //playerOnItem();
-
         }
     }
 
@@ -612,9 +392,9 @@ function animate() {
         //clear la map
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        /* for (let i = 0; i < tabItem.length; i++) {
-             tabItem[i].drawItem(mapConstant.startLeft, mapConstant.startUp, ctx, itemSprite);
-         }*/
+        for (let i = 0; i < tabItem.length; i++) {
+            tabItem[i].drawItem(mapConstant.startLeft, mapConstant.startUp, ctx, itemSprite);
+        }
 
         for (let i = 0; i < tabBomb.length; i++) {
             if (tabBomb[i].isExplosed()) {
@@ -625,24 +405,22 @@ function animate() {
                 tabBomb[i].drawbomb(mapConstant.startLeft, mapConstant.startUp, ctx, bombSprite);
             }
         }
-        /*        //afficher les explosion sans le centre
-                for (let i = 0; i < tabExplosion.length; i++) {
-                    tabExplosion[i].drawExplosion(mapConstant.startLeft, mapConstant.startUp, ctx, bombSprite);
-                }
-        
-        */
+
+        //afficher les explosion sans le centre
+        for (let i = 0; i < tabExplosion.length; i++) {
+            tabExplosion[i].drawExplosion(mapConstant.startLeft, mapConstant.startUp, ctx, bombSprite);
+        }
 
         placeWallSprite();
 
         for (let i = 0; i < tabplayers.length; i++) {
             tabplayers[i].drawSprite(ctx, playerSprite[tabplayers[i].getNumberPlayer - 1]);
             tabplayers[i].hitboxPlayer();
+
         }
 
         movePlayer();
-        console.log(tabplayers[playernumberTab])
         sock.volatile.emit('editplayer', tabplayers[playernumberTab], playernumberTab);
-
 
         //afficher le haut des mur pour que les objet sois en dessous 
         ctx.drawImage(wallUnbreakableImage, 0, 0, 256 * 4, 384 * 4);

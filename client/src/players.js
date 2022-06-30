@@ -370,52 +370,6 @@ class players {
         }
     }
 
-    /*---------------------POWER--------------------- */
-    powerUp(type) {
-        switch (type) {
-            case 0:
-                if (this.bombpower < 8) {
-                    this.bombpower += 1;
-                }
-                break;
-
-            case 1:
-                if (this.bombpower < 8) {
-                    this.bombpower = 8;
-                }
-                break;
-            case 2:
-                if (this.bombpower > 1) {
-                    this.bombpower -= 1;
-                }
-                break;
-
-            case 3:
-                this.speed += 1;
-                break;
-
-            case 4:
-                if (this.speed > 1) {
-                    this.speed -= 1;
-                }
-                break;
-
-            case 5:
-                this.bombnumber += 1;
-                break;
-
-            case 6:
-                if (this.bombnumber > 1) {
-                    this.bombnumber -= 1;
-                }
-                break;
-
-            default:
-                console.log("N'existe pas")
-                break;
-        }
-    }
-
 }
 
 export default players

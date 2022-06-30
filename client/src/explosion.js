@@ -1,37 +1,12 @@
 class explosion {
-    constructor(x, y, frameCount, type) {
-        this.x = x; //position x
-        this.y = y; //position y
-        this.width = 16; // taille image
-        this.height = 16; //taille image
-        this.frameX = 0; // position de la frame X
-        this.frameY = type; // si c'est Left right etc...
-        this.frameCount = frameCount; // nombre de frame pour l'animation
-    }
-
-    //return
-    get getx() {
-        return this.x;
-    }
-
-    get gety() {
-        return this.y;
-    }
-
-    //modifie le sprite de l'image a afficher
-    handleExplosionFrame() {
-        //Faire bouger
-        if (this.frameX < this.frameCount) {
-            this.frameX++;
-        }
-    }
-
-    //si on a finis l'affichage des explosion
-    explosionFrameIsDone() {
-        if (this.frameX > this.frameCount - 1) {
-            return true;
-        }
-        return false;
+    constructor(param) {
+        this.x = param.x; //position x
+        this.y = param.y; //position y
+        this.width = param.width; // taille image
+        this.height = param.height; //taille image
+        this.frameX = param.frameX; // position de la frame X
+        this.frameY = param.frameY; // si c'est Left right etc...
+        this.frameCount = param.frameCount; // nombre de frame pour l'animation
     }
 
     //affiche les explosions

@@ -66,6 +66,7 @@ io.on('connection', (sock) => {
     sock.on('editplayer', (param, nbtab) => {
         let user = users.getUser(sock.id);
         if (user) {
+            //ca update player
             settings.updatePlayer(nbtab, user.room, param);
             io.to(sock.id).emit('paramGame', settings.getAllOfAGame(user.room), nbtab);
         }
@@ -76,7 +77,7 @@ io.on('connection', (sock) => {
         let user = users.getUser(sock.id);
         if (user) {
             settings.placeBomb(user.room, x, y, user);
-            io.to(user.room).emit('bombParam', settings.getAllOfAGame(user.room).tabBomb);
+            io.to(user.room).emit('bombParam', settings.getAllOfAGame(user.room));
         }
     });
 
@@ -109,6 +110,16 @@ io.on('connection', (sock) => {
     });
 
 });
+
+
+/*--------------------------BOUCLE INFINI------------------------------- */
+
+function testBomb() {
+    settings.updateBomb();
+
+}
+
+setInterval(testBomb, 150);
 
 server.on('error', (err) => {
     console.error(err);
