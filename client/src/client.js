@@ -2,7 +2,9 @@ import Player from "./player.js";
 import bomb from "./bomb.js";
 import explosion from "./explosion.js";
 import item from "./item.js";
+
 import { MAP } from "./const.js";
+import { WALL } from "./const.js";
 
 /*CONSTANTE */
 
@@ -221,13 +223,13 @@ const onStart = (sock) => (e) => {
 
 const drawCharacters = () => {
   // Effacez le canvas
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  //ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // Dessinez chaque personnage
   for (const id in characters) {
     const character = characters[id];
     ctx.fillStyle = "red";
-    ctx.fillRect(character.x, character.y, 50, 50);
+    ctx.fillRect(character.x, character.y, 16 * 4, 16 * 4);
   }
 };
 
@@ -235,8 +237,13 @@ const drawCharacters = () => {
 const addPlayer = (param) => {
   const character = new Player(param);
   characters[param.id] = character;
-  drawCharacters();
-  console.log(characters);
+  //console.log(characters);
+};
+
+const updateCharacterPosition = (param) => {
+  const character = characters[param.id];
+  character.x = param.x;
+  character.y = param.y;
 };
 
 const sock = io();
@@ -253,6 +260,8 @@ const sock = io();
   sock.on("stateGame", (state) => (stateGame = state));
 
   sock.on("playernumberTab", (param) => (playernumber = param));
+
+  sock.on("updateCharacterPosition", updateCharacterPosition); //met a jour la position du joueur
 
   //sock.on("paramGame", getGameParam);
 
@@ -291,7 +300,6 @@ window.addEventListener("keydown", function (e) {
   ) {
     e.preventDefault();
   }
-  movePlayer();
 });
 
 //si on relache la touche
@@ -303,12 +311,80 @@ window.addEventListener("keyup", function (e) {
   delete keys[e.key];
 });
 
+//wall
+let walls = WALL.wall;
+console.log(WALL);
+
+function drawWalls() {
+  ctx.fillStyle = "gray";
+  for (let i = 0; i < walls.length; i++) {
+    let wall = walls[i];
+    ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
+  }
+}
+
+// Définissez une fonction pour effacer le canvas et dessiner le jeu
+function drawGame() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawCharacters();
+  drawWalls();
+}
+
+let updateTime = 0;
+let drawTime = 0;
+
+// Vérifier si le joueur appuie sur l'une des touches fléchées.
+function checkArrowKeys(keys) {
+  return (
+    keys["ArrowUp"] ||
+    keys["ArrowDown"] ||
+    keys["ArrowLeft"] ||
+    keys["ArrowRight"] ||
+    keys["z"] ||
+    keys["q"] ||
+    keys["s"] ||
+    keys["d"]
+  );
+}
+
+function animate2(currentTime) {
+  // Calculer le temps écoulé depuis la dernière exécution de la fonction animate()
+  const deltaTime = currentTime - updateTime;
+
+  // Mettre à jour la position des utilisateurs toutes les 12ms
+  if (deltaTime >= 4) {
+    if (checkArrowKeys(keys)) {
+      movePlayer();
+    }
+    updateTime = currentTime;
+  }
+
+  // Dessiner sur le canvas toutes les 8ms
+  if (deltaTime >= 8) {
+    drawGame();
+    drawTime = currentTime;
+    // Si le joueur a bouger on envoie la position
+    if (checkArrowKeys(keys)) {
+      // Envoyer au serveur la position du joueur
+      sock.emit("updateCharacterPosition", {
+        room: roomnumber,
+        x: characters[sock.id].x,
+        y: characters[sock.id].y,
+      });
+    }
+  }
+
+  // Appeler à nouveau la fonction animate() pour continuer l'animation
+  requestAnimationFrame(animate2);
+}
+
+// Lancer l'animation en appelant la fonction animate()
+requestAnimationFrame(animate2);
+
 /*--------------------------MOUVEMENT DU PERSONNAGE--------------------------- */
 
 //deplacement du joueur + changement de la frame pour sa position + changement de son statue moving ou pas
 function movePlayer() {
-  console.log("test");
-
   //passer en param les condition pour les murs de colision
   // var y = (tabplayers[playernumberTab].hitboxY - MAP.startUp) / (16 * 4);
   // var x = (tabplayers[playernumberTab].hitboxX - MAP.startLeft) / (16 * 4);
@@ -331,26 +407,35 @@ function movePlayer() {
     lastKeyPressed = Object.keys(keys)[Object.keys(keys).length - 1];
   }
   const character = characters[sock.id];
-  const speed = 5;
+  const speed = 4;
+
   //quand on click sur les touches
   if (lastKeyPressed == "ArrowLeft" || lastKeyPressed == "q") {
-    character.move(-speed, 0);
-    drawCharacters();
+    character.move2(-speed, 0, walls);
+    // if (detectCollisions()) {
+    //   character.move(+speed, 0); // annulez le déplacement si le joueur heurte un mur
+    // }
 
     //tabplayers[playernumberTab].collideWallLeft(x, y, xTab2, yTab2, map);
   } else if (lastKeyPressed == "ArrowRight" || lastKeyPressed == "d") {
-    character.move(speed, 0);
-    drawCharacters();
+    character.move2(+speed, 0, walls);
+    // if (detectCollisions()) {
+    //   character.move(-speed, 0); // annulez le déplacement si le joueur heurte un mur
+    // }
 
     //tabplayers[playernumberTab].collideWallRight(x, y, xTab, yTab, map);
   } else if (lastKeyPressed == "ArrowUp" || lastKeyPressed == "z") {
-    character.move(0, -speed);
-    drawCharacters();
+    character.move2(0, -speed, walls);
+    // if (detectCollisions()) {
+    //   character.move(0, +speed); // annulez le déplacement si le joueur heurte un mur
+    // }
 
     //tabplayers[playernumberTab].collideWallUp(x, y, xTab2, yTab2, map);
   } else if (lastKeyPressed == "ArrowDown" || lastKeyPressed == "s") {
-    character.move(0, speed);
-    drawCharacters();
+    character.move2(0, +speed, walls);
+    // if (detectCollisions()) {
+    //   character.move2(0, -speed); // annulez le déplacement si le joueur heurte un mur
+    // }
 
     //tabplayers[playernumberTab].collideWallDown(x, y, xTab, yTab, map);
   } else if (lastKeyPressed == " " || lastKeyPressed == "Enter") {

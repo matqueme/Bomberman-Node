@@ -11,6 +11,9 @@ class Player {
     this.x = param.x; //position x en start
     this.y = param.y; //position y en start
 
+    this.width = PLAYER.widthPlayer;
+    this.height = PLAYER.heightPlayer;
+
     this.boxX = param.boxX;
     this.boxY = param.boxY;
 
@@ -57,6 +60,104 @@ class Player {
 
   get getBoxY() {
     return this.boxY;
+  }
+
+  move2(dx, dy, walls) {
+    // Calculez la boîte englobante du joueur pour la prochaine position
+    let nextBoundingBox = {
+      x: this.x + dx,
+      y: this.y + dy,
+      width: this.width,
+      height: this.height,
+    };
+
+    // Vérifiez la collision avec les murs pour les déplacements verticaux
+    for (let wall of walls) {
+      //verifier la taille du terrain
+      if (nextBoundingBox.x < MAP.startLeft) {
+        this.x = MAP.startLeft;
+        return;
+      } else if (nextBoundingBox.x + nextBoundingBox.width > MAP.endRight) {
+        this.x = MAP.endRight - nextBoundingBox.width;
+        return;
+      } else if (nextBoundingBox.y < MAP.startTop) {
+        this.y = MAP.startTop;
+        return;
+      } else if (nextBoundingBox.y + nextBoundingBox.height > MAP.endBottom) {
+        this.y = MAP.endBottom - nextBoundingBox.height;
+        return;
+      }
+
+      if (
+        nextBoundingBox.x < wall.x + wall.width &&
+        nextBoundingBox.x + nextBoundingBox.width > wall.x &&
+        nextBoundingBox.y < wall.y + wall.height &&
+        nextBoundingBox.y + nextBoundingBox.height > wall.y
+      ) {
+        // Si le joueur a heurté un mur, s'il n'est pas au centre le deplacer (haut,bas ou gauche,droite)
+        //droite
+
+        if (this.x + this.width <= wall.x) {
+          if (
+            this.y + this.height < wall.y + wall.height &&
+            //si le mur est au dessus du mur a droite
+            !walls.find((wal) => wal.x === wall.x && wal.y === wall.y - 64)
+          ) {
+            this.y -= dx;
+          } else if (
+            this.y + this.height > wall.y + wall.height &&
+            !walls.find((wal) => wal.x === wall.x && wal.y === wall.y + 64)
+          )
+            this.y += dx;
+          else this.x = wall.x - this.width;
+          //gauche
+        } else if (this.x >= wall.x + wall.width) {
+          if (
+            this.y + this.height < wall.y + wall.height &&
+            !walls.find((wal) => wal.x === wall.x && wal.y === wall.y - 64)
+          )
+            this.y += dx;
+          else if (
+            this.y + this.height > wall.y + wall.height &&
+            !walls.find((wal) => wal.x === wall.x && wal.y === wall.y + 64)
+          )
+            this.y -= dx;
+          else this.x = wall.x + wall.width;
+          //bas
+        } else if (this.y + this.height <= wall.y) {
+          if (
+            this.x + this.width < wall.x + wall.width &&
+            !walls.find((wal) => wal.x === wall.x - 64 && wal.y === wall.y)
+          )
+            this.x -= dy;
+          else if (
+            this.x + this.width > wall.x + wall.width &&
+            !walls.find((wal) => wal.x === wall.x + 64 && wal.y === wall.y)
+          )
+            this.x += dy;
+          else this.y = wall.y - this.height;
+          //haut
+        } else if (this.y >= wall.y + wall.height) {
+          if (
+            this.x + this.width < wall.x + wall.width &&
+            !walls.find((wal) => wal.x === wall.x - 64 && wal.y === wall.y)
+          )
+            this.x += dy;
+          else if (
+            this.x + this.width > wall.x + wall.width &&
+            !walls.find((wal) => wal.x === wall.x + 64 && wal.y === wall.y)
+          )
+            this.x -= dy;
+          else this.y = wall.y + wall.height;
+        }
+
+        return;
+      }
+    }
+
+    // Pas de collision détectée, déplacez le joueur
+    this.x += dx;
+    this.y += dy;
   }
 
   move(dx, dy) {
@@ -178,174 +279,6 @@ class Player {
     this.frameY = 1;
     this.moving = true;
     this.frameCount = 9;
-  }
-
-  /*-----------------------COLLIDE WALL---------------------- */
-  collideWallLeft(x, y, xTab, yTab, map) {
-    //gestion de la sortie du tableau
-    if (xTab - 1 <= 0 && map[yTab][xTab - 1] == "0") {
-      this.moveLeft(MAP.startLeft);
-    } else {
-      //si c'est un bon nombre entier on peut aller a gauche
-      if (map[yTab][xTab - 1] == "0" && Number.isInteger(y)) {
-        this.moveLeft(MAP.startLeft);
-      } else if (!Number.isInteger(y)) {
-        if (y < Math.round(y)) {
-          //si la case a gauche est un vide on dessend
-          if (map[yTab][xTab - 1] == "0") {
-            this.moveDown(MAP.endBottom);
-          } else {
-            //si la case au dessus a gauche est vide on monte sinon on anime seulement
-            if (map[yTab - 1][xTab - 1] == "0") {
-              this.moveUp(MAP.startUp);
-            } else {
-              this.moveLeftAnimation();
-            }
-          }
-          //si on est plus en bas
-        } else {
-          //si le mur a gauche est un mur
-          if (map[yTab][xTab - 1] == "x" || map[yTab][xTab - 1] == "b") {
-            //si y a rien au dessus a gauche on monte
-            if (map[yTab - 1][xTab - 1] == "0") {
-              this.moveUp(MAP.startUp);
-              //sinon on anime
-            } else {
-              this.moveLeftAnimation();
-            }
-            //sinon on descend
-          } else {
-            this.moveDown(MAP.endBottom);
-          }
-        }
-      } else {
-        //gestion des bombes en dessous du joueur
-        //si on est sur une bombe
-        if (map[Math.round(y)][Math.round(x)] == "b") {
-          //si y a pas de bombe a gauche ou se deplace
-          if (map[Math.round(y)][Math.round(x) - 1] == "0") {
-            this.moveLeft(MAP.startLeft);
-            //si y a une bombe mais qu'on es plus a droite de la bombe on peut aller jusqu'au centre de la case
-          } else if (
-            map[Math.round(y)][Math.round(x) - 1] == "b" &&
-            x > Math.round(x)
-          ) {
-            this.moveLeft(MAP.startLeft);
-            //sinon on met juste l'animation
-          } else {
-            this.moveLeftAnimation();
-          }
-        } else {
-          this.moveLeftAnimation();
-        }
-      }
-    }
-  }
-
-  collideWallRight(x, y, xTab, yTab, map) {
-    if (xTab + 1 >= map[0].length) {
-      this.moveRight(MAP.endRight);
-    } else {
-      //si c'est un bon nombre entier on peut aller a gauche
-      if (map[yTab][xTab + 1] == "0" && Number.isInteger(y)) {
-        this.moveRight(MAP.endRight);
-        //sinon on on monte ou on descend jusqu'a avoir un nb entier
-      } else if (!Number.isInteger(y)) {
-        if (y < Math.round(y)) {
-          if (map[yTab][xTab + 1] == "0") {
-            this.moveUp(MAP.startUp);
-          } else {
-            if (map[yTab + 1][xTab + 1] == "0") {
-              this.moveDown(MAP.endBottom);
-            } else {
-              this.moveRightAnimation();
-            }
-          }
-        } else {
-          if (map[yTab][xTab + 1] == "x" || map[yTab][xTab + 1] == "b") {
-            if (map[yTab + 1][xTab + 1] == "0") {
-              this.moveDown(MAP.endBottom);
-            } else {
-              this.moveRightAnimation();
-            }
-          } else {
-            this.moveUp(MAP.startUp);
-          }
-        }
-      } else {
-        //gestion des bombes en dessous du joueur
-        //si on est sur une bombe
-        if (map[Math.round(y)][Math.round(x)] == "b") {
-          //si y a pas de bombe a droite ou se deplace
-          if (map[Math.round(y)][Math.round(x) + 1] == "0") {
-            this.moveRight(MAP.endRight);
-            //si y a une bombe mais qu'on es plus a gauche de la bombe on peut aller jusqu'au centre de la case
-          } else if (
-            map[Math.round(y)][Math.round(x) + 1] == "b" &&
-            x < Math.round(x)
-          ) {
-            this.moveRight(MAP.endRight);
-            //sinon on met juste l'animation
-          } else {
-            this.moveRightAnimation();
-          }
-        } else {
-          this.moveRightAnimation();
-        }
-      }
-    }
-  }
-
-  collideWallUp(x, y, xTab, yTab, map) {
-    if (yTab - 1 <= 0) {
-      this.moveUp(MAP.startUp);
-    } else {
-      if (map[yTab - 1][xTab] == "0" && Number.isInteger(x)) {
-        this.moveUp(MAP.startUp);
-      } else if (!Number.isInteger(x)) {
-        if (x > Math.round(x)) {
-          if (map[yTab - 1][xTab] == "0") {
-            this.moveRight(MAP.endRight);
-          } else {
-            if (map[yTab - 1][xTab - 1] == "0") {
-              this.moveLeft(MAP.startLeft);
-            } else {
-              this.moveUpAnimation();
-            }
-          }
-        } else {
-          if (map[yTab - 1][xTab] == "x" || map[yTab - 1][xTab] == "b") {
-            if (map[yTab - 1][xTab - 1] == "0") {
-              this.moveLeft(MAP.startLeft);
-            } else {
-              this.moveUpAnimation();
-            }
-          } else {
-            this.moveRight(MAP.endRight);
-          }
-        }
-      } else {
-        //gestion des bombes en dessous du joueur
-        //si on est sur une bombe
-        if (map[Math.round(y)][Math.round(x)] == "b") {
-          //si y a pas de bombe a droite ou se deplace
-          if (map[Math.round(y) - 1][Math.round(x)] == "0") {
-            this.moveUp(MAP.startUp);
-            //si y a une bombe mais qu'on es plus a gauche de la bombe on peut aller jusqu'au centre de la case
-          } else if (
-            map[Math.round(y) - 1][Math.round(x)] == "b" &&
-            y > Math.round(y)
-          ) {
-            this.moveUp(MAP.startUp);
-            //sinon on met juste l'animation
-          } else {
-            this.moveUpAnimation();
-          }
-        } else {
-          this.moveUpAnimation();
-        }
-      }
-    }
   }
 
   collideWallDown(x, y, xTab, yTab, map) {

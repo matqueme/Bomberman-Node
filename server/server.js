@@ -22,7 +22,9 @@ io.on("connection", (socket) => {
 
     // Rejoindre la room
     socket.join(param.room);
-    console.log(`Client connected: ${socket.id} to room : "${param.room}"`);
+    console.log(
+      `Client connected: ${socket.id}, name : ${param.name}, to room : "${param.room}"`
+    );
 
     // Créer une nouvelle room
     if (!rooms[param.room]) {
@@ -106,6 +108,19 @@ io.on("connection", (socket) => {
     //     users.getNumberPlayer(socket.id)
     //   );
     //}
+  });
+
+  socket.on("updateCharacterPosition", (data) => {
+    // Mettre à jour la position du joueur
+    rooms[data.room].players[socket.id].x = data.x;
+    rooms[data.room].players[socket.id].y = data.y;
+
+    // Envoyer les informations de mise à jour a tout les joueurs
+    io.emit("updateCharacterPosition", {
+      id: socket.id,
+      x: data.x,
+      y: data.y,
+    });
   });
 
   //Modify player parameter -------------------
