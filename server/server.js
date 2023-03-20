@@ -30,10 +30,11 @@ io.on("connection", (socket) => {
     if (!rooms[param.room]) {
       rooms[param.room] = {
         players: {},
+        bombs: {},
         roomData: {
           maxPlayers: 8,
           gameStarted: false,
-          // ...
+          nextBombId: 0,
         },
       };
     }
@@ -68,6 +69,7 @@ io.on("connection", (socket) => {
       y: 0,
       admin: Object.keys(rooms[param.room].players).length == 0,
       playerNumber: smallestPlayerNumber,
+      nextBombId: 0,
     };
 
     // Envoyer les informations d'Admin
@@ -138,12 +140,16 @@ io.on("connection", (socket) => {
   });
 
   //Add bomb to settings -------------------
-  socket.on("addBomb", (x, y) => {
-    // let user = users.getUser(socket.id);
-    // if (user) {
-    //   settings.placeBomb(user.room, x, y, user);
-    //   io.to(user.room).emit("bombParam", settings.getAllOfAGame(user.room));
-    // }
+  socket.on("addBomb", (data) => {
+    const bomb = new Bomb(data.x, data.y, rooms[data.room].roomData.nextBombId);
+    // Ajoute la bombe à la liste des bombes de la salle correspondante
+    rooms[data.room].bombs[rooms[data.room].roomData.nextBombId] = bomb;
+
+    // Met à jour la variable nextBombId de la salle pour la prochaine bombe
+    rooms[data.room].roomData.nextBombId++;
+
+    // Envoie la bombe à tout les joueurs dans la room
+    io.to(data.room).emit("addBomb", bomb);
   });
 
   //START -------------------
@@ -188,34 +194,49 @@ io.on("connection", (socket) => {
         }
       }
     });
-
-    //   let user = users.removeUser(socket.id);
-    //   if (user) {
-    //     io.to(user.room).emit(
-    //       "updateUserList",
-    //       users.getUserList(user.room),
-    //       users.getPlayerNumberList(user.room)
-    //     );
-    //     //envoie une requete au nouvel admin
-    //     let aa = users.getUserAdmin(user.room);
-    //     io.to(aa).emit("admin", true);
-    //     //remove les settings si y a plus personne dans la room
-    //     if (users.getUserList(user.room).length == 0) {
-    //       settings.removeSetting(user.room);
-    //       settings.removeGame(user.room);
-    //     }
-    //   }
   });
 });
 
 /*--------------------------BOUCLE INFINI------------------------------- */
 
-// function testBomb() {
-//   settings.updateBomb();
-// }
+class Bomb {
+  constructor(x, y, id) {
+    this.id = id;
+    this.x = x;
+    this.y = y;
+    //this.owner = owner;
+    this.timePlaced = Date.now();
+    this.timeToExplode = 3000; // 3 secondes
+    this.explosionRadius = 50; // Par exemple
+  }
+}
 
-// setInterval(testBomb, 150);
+//----------------------BOUCLE INFINI---------------------------
+function gameLoop() {
+  for (const roomId in rooms) {
+    const room = rooms[roomId];
+    updateBombs(room);
+  }
 
+  // Répéter la boucle de jeu
+  setTimeout(gameLoop, 1000 / 60); // 60 FPS
+}
+gameLoop();
+
+function updateBombs(room) {
+  for (const bombId in room.bombs) {
+    const bomb = room.bombs[bombId];
+
+    if (Date.now() - bomb.timePlaced >= bomb.timeToExplode) {
+      // Supprimer la bombe de la liste
+      delete room.bombs[bombId];
+      // Envoyer un événement aux clients pour indiquer que la bombe a explosé
+      io.emit("bombExploded", bombId);
+    }
+  }
+}
+
+//-------------------------------SERVEUR DATA--------------------------------
 server.on("error", (err) => {
   console.error(err);
 });

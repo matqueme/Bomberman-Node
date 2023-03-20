@@ -1,141 +1,166 @@
 <!DOCTYPE html>
 <html lang="fr">
-
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bomberman</title>
-    <link rel="apple-touch-icon" sizes="180x180" href="/img/favicon/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon/favicon-16x16.png">
-    <link rel="manifest" href="/img/favicon/site.webmanifest">
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/img/favicon/apple-touch-icon.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="/img/favicon/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="/img/favicon/favicon-16x16.png"
+    />
+    <link rel="manifest" href="/img/favicon/site.webmanifest" />
 
-    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css'>
-    <link rel="stylesheet" href="style/style.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+    <link rel="stylesheet" href="style/style.css" />
+  </head>
 
-</head>
-
-<body>
-
-
+  <body>
     <!--Page au chargement-->
     <div id="username">
-        <div id="content">
-            <form id="username_form">
-                <label for="usernameInput">Nom :</label>
-                <br>
-                <input id="usernameInput" autocomplete="off" title="usernameInput" autofocus="autofocus" value="John" />
-                <br>
-                <label for="roomInput">Room :</label>
-                <br>
-                <input id="roomInput" autocomplete="off" title="roomInput" />
-                <br>
-                <button id="choose">Valider</button>
-            </form>
-            <div id="error"></div>
-        </div>
+      <div id="content">
+        <form id="username_form">
+          <label for="usernameInput">Nom :</label>
+          <br />
+          <input
+            id="usernameInput"
+            autocomplete="off"
+            title="usernameInput"
+            autofocus="autofocus"
+            value="John"
+          />
+          <br />
+          <label for="roomInput">Room :</label>
+          <br />
+          <input id="roomInput" autocomplete="off" title="roomInput" />
+          <br />
+          <button id="choose">Valider</button>
+        </form>
+        <div id="error"></div>
+      </div>
     </div>
 
     <!--menu a gauche-->
     <div id="mySidenav" class="sidenav">
-        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-        <form id="playerchoose">
-            <div>
-                <input type="radio" id="inputchooseplayer1" name="player" value="">
-                <label for="inputchooseplayer1" id="chooseplayer1"></label>
-            </div>
-            <div>
-                <input type="radio" id="inputchooseplayer2" name="player" value="">
-                <label for="inputchooseplayer2" id="chooseplayer2"></label>
-            </div>
-            <div>
-                <input type="radio" id="inputchooseplayer3" name="player" value="">
-                <label for="inputchooseplayer3" id="chooseplayer3"></label>
-            </div>
-            <div>
-                <input type="radio" id="inputchooseplayer4" name="player" value="">
-                <label for="inputchooseplayer4" id="chooseplayer4"></label>
-            </div>
-            <div>
-                <input type="radio" id="inputchooseplayer5" name="player" value="">
-                <label for="inputchooseplayer5" id="chooseplayer5"></label>
-            </div>
-            <div>
-                <input type="radio" id="inputchooseplayer6" name="player" value="">
-                <label for="inputchooseplayer6" id="chooseplayer6"></label>
-            </div>
-            <div>
-                <input type="radio" id="inputchooseplayer7" name="player" value="">
-                <label for="inputchooseplayer7" id="chooseplayer7"></label>
-            </div>
-            <div>
-                <input type="radio" id="inputchooseplayer8" name="player" value="">
-                <label for="inputchooseplayer8" id="chooseplayer8"></label>
-            </div>
-        </form>
+      <a href="javascript:void(0)" class="closebtn" onclick="closeNav()"
+        >&times;</a
+      >
+      <form id="playerchoose">
+        <div>
+          <input type="radio" id="inputchooseplayer1" name="player" value="" />
+          <label for="inputchooseplayer1" id="chooseplayer1"></label>
+        </div>
+        <div>
+          <input type="radio" id="inputchooseplayer2" name="player" value="" />
+          <label for="inputchooseplayer2" id="chooseplayer2"></label>
+        </div>
+        <div>
+          <input type="radio" id="inputchooseplayer3" name="player" value="" />
+          <label for="inputchooseplayer3" id="chooseplayer3"></label>
+        </div>
+        <div>
+          <input type="radio" id="inputchooseplayer4" name="player" value="" />
+          <label for="inputchooseplayer4" id="chooseplayer4"></label>
+        </div>
+        <div>
+          <input type="radio" id="inputchooseplayer5" name="player" value="" />
+          <label for="inputchooseplayer5" id="chooseplayer5"></label>
+        </div>
+        <div>
+          <input type="radio" id="inputchooseplayer6" name="player" value="" />
+          <label for="inputchooseplayer6" id="chooseplayer6"></label>
+        </div>
+        <div>
+          <input type="radio" id="inputchooseplayer7" name="player" value="" />
+          <label for="inputchooseplayer7" id="chooseplayer7"></label>
+        </div>
+        <div>
+          <input type="radio" id="inputchooseplayer8" name="player" value="" />
+          <label for="inputchooseplayer8" id="chooseplayer8"></label>
+        </div>
+      </form>
     </div>
 
     <div id="main">
-        <span style="font-size:30px;cursor:pointer" onclick="openNav()">&#9776;</span>
+      <span style="font-size: 30px; cursor: pointer" onclick="openNav()"
+        >&#9776;</span
+      >
 
-
-        <div id="maindiv">
-
-            <div id="left">
-                <div id="score">
-                    <div id="titlescore">Score</div>
-                    <div class="player" id="player1">Name <i class='fa fa-trophy' style='color: #f3da35'></i> </div>
-                    <div class="player" id="player2">Name</div>
-                    <div class="player" id="player3">Name</div>
-                    <div class="player" id="player4">Name</div>
-                    <div class="player" id="player5">Name</div>
-                    <div class="player" id="player6">Name</div>
-                    <div class="player" id="player7">Name</div>
-                    <div class="player" id="player8">Name</div>
-                </div>
-                <button type="start" id="start" disabled>Start</button>
+      <div id="maindiv">
+        <div id="left">
+          <div id="score">
+            <div id="titlescore">Score</div>
+            <div class="player" id="player1">
+              - <i class="fa fa-trophy" style="color: #f3da35"></i>
             </div>
-            <div id="center">
-                <canvas id="canvas" width="1024" height="1536"></canvas>
-            </div>
-
-            <div id="right">
-                <div class="controls-wrapper">
-                    <ul id="events"></ul>
-                    <div class="controls">
-                        <div class="chat-wrapper">
-                            <form id="chat-form">
-                                <input id="chat" autocomplete="off" title="chat" />
-                                <button id="say">Envoyer</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <div class="player" id="player2">-</div>
+            <div class="player" id="player3">-</div>
+            <div class="player" id="player4">-</div>
+            <div class="player" id="player5">-</div>
+            <div class="player" id="player6">-</div>
+            <div class="player" id="player7">-</div>
+            <div class="player" id="player8">-</div>
+          </div>
+          <button type="start" id="start" disabled>Start</button>
         </div>
+        <div id="center">
+          <canvas id="canvas" width="1024" height="1536"></canvas>
+        </div>
+
+        <div id="right">
+          <div class="controls-wrapper">
+            <ul id="events"></ul>
+            <div class="controls">
+              <div class="chat-wrapper">
+                <form id="chat-form">
+                  <input id="chat" autocomplete="off" title="chat" />
+                  <button id="say">Envoyer</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-</body>
+  </body>
 
-<script src="/socket.io/socket.io.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
 
-<script type="module" src="src/client.js"></script>
+  <script type="module" src="src/client.js"></script>
 
-<script>
+  <script>
     function openNav() {
-        if (document.getElementById("mySidenav").style.width == "0px" || document.getElementById("mySidenav").style.width == 0) {
-            document.getElementById("mySidenav").style.width = "250px";
-            document.getElementById("main").style.marginLeft = "250px";
-        } else {
-            document.getElementById("mySidenav").style.width = "0";
-            document.getElementById("main").style.marginLeft = "0";
-        }
+      if (
+        document.getElementById("mySidenav").style.width == "0px" ||
+        document.getElementById("mySidenav").style.width == 0
+      ) {
+        document.getElementById("mySidenav").style.width = "250px";
+        document.getElementById("main").style.marginLeft = "250px";
+      } else {
+        document.getElementById("mySidenav").style.width = "0";
+        document.getElementById("main").style.marginLeft = "0";
+      }
     }
 
     function closeNav() {
-        document.getElementById("mySidenav").style.width = "0";
-        document.getElementById("main").style.marginLeft = "0";
+      document.getElementById("mySidenav").style.width = "0";
+      document.getElementById("main").style.marginLeft = "0";
     }
-</script>
-
+  </script>
 </html>

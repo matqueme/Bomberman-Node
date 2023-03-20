@@ -14,9 +14,6 @@ class Player {
     this.width = PLAYER.widthPlayer;
     this.height = PLAYER.heightPlayer;
 
-    this.boxX = param.boxX;
-    this.boxY = param.boxY;
-
     /*DISPLAY PARAMETER*/
     this.frameX = param.frameX; // position de la frame X
     this.frameY = param.frameY; // position de la frame y
@@ -29,7 +26,7 @@ class Player {
     this.hitboxWH = param.hitboxWH; //  hitbox en longeur/largeur
 
     /*SPEED*/
-    this.speed = param.speed; //vitesse de déplacement
+    this.speed = 1; //vitesse de déplacement
 
     /*LAST MOVE*/
     this.lastMove = 0;
@@ -54,15 +51,19 @@ class Player {
     return this.bombpower;
   }
 
-  get getBoxX() {
-    return this.boxX;
+  get getSpeed() {
+    //dictionnaire de la vitesse qui sera
+    const speeds = {
+      1: 16,
+      2: 12,
+      3: 8,
+      4: 6,
+      5: 4,
+    };
+    return speeds[this.speed];
   }
 
-  get getBoxY() {
-    return this.boxY;
-  }
-
-  move2(dx, dy, walls) {
+  move(dx, dy, walls) {
     // Calculez la boîte englobante du joueur pour la prochaine position
     let nextBoundingBox = {
       x: this.x + dx,
@@ -159,11 +160,6 @@ class Player {
     this.x += dx;
     this.y += dy;
   }
-
-  move(dx, dy) {
-    this.x += dx;
-    this.y += dy;
-  } //deplacement du joueur
 
   /*------------------------ANNIMATION ------------------------------ */
   //pour placer la hitbox du joueur, tout les calculs se font en fonction de la hitbox
