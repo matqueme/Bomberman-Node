@@ -1,13 +1,16 @@
-const http = require("http");
-const express = require("express");
-const socketio = require("socket.io");
+import http from "http";
+import express from "express";
+import path from "path";
+import { Server } from "socket.io";
+import { WALL } from "./const.js";
+import { MAP } from "./const.js";
 
 const app = express();
 
-app.use(express.static(`${__dirname}/../client`));
+app.use(express.static("../client"));
 
 const server = http.createServer(app);
-const io = socketio(server);
+const io = new Server(server);
 
 const rooms = {};
 
@@ -31,10 +34,14 @@ io.on("connection", (socket) => {
       rooms[param.room] = {
         players: {},
         bombs: {},
+        explosions: {},
+        walls: WALL.wall,
         roomData: {
+          nameroom: param.room,
           maxPlayers: 8,
           gameStarted: false,
           nextBombId: 0,
+          nextExplosionId: 0,
         },
       };
     }
@@ -67,6 +74,7 @@ io.on("connection", (socket) => {
       name: param.name,
       x: 0,
       y: 0,
+      alive: true,
       admin: Object.keys(rooms[param.room].players).length == 0,
       playerNumber: smallestPlayerNumber,
       nextBombId: 0,
@@ -139,8 +147,15 @@ io.on("connection", (socket) => {
     // }
   });
 
-  //Add bomb to settings -------------------
+  //Add bomb
   socket.on("addBomb", (data) => {
+    if (
+      data.x < MAP.startLeft ||
+      data.x > MAP.endRight ||
+      data.y > MAP.endTop ||
+      data.y < MAP.startTop
+    )
+      return;
     const bomb = new Bomb(data.x, data.y, rooms[data.room].roomData.nextBombId);
     // Ajoute la bombe à la liste des bombes de la salle correspondante
     rooms[data.room].bombs[rooms[data.room].roomData.nextBombId] = bomb;
@@ -196,18 +211,56 @@ io.on("connection", (socket) => {
     });
   });
 });
+/*--------------------------Explosion------------------------------- */
 
-/*--------------------------BOUCLE INFINI------------------------------- */
+function createExplosion(x, y, type, room, date) {
+  const newExplosion = {
+    x,
+    y,
+    type,
+    id: room.roomData.nextExplosionId,
+    date: date,
+  };
+
+  // ajout de l'objet explosion à la variable explosions
+  room.explosions[room.roomData.nextExplosionId] = newExplosion;
+
+  // Met à jour la variable nextExplosionId de la salle pour la prochaine explosion
+  room.roomData.nextExplosionId++;
+}
+
+function collideWall(x, y, room) {
+  for (let id = 0; id < room.walls.length; id++) {
+    const wall = room.walls[id];
+    if (x == wall.x && y == wall.y) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function collideBomb(x, y, room) {
+  for (const bombId in room.bombs) {
+    const bomb = room.bombs[bombId];
+    if (x == bomb.x && y == bomb.y) {
+      bomb.timeToExplode = 0;
+    }
+  }
+}
+
+/*--------------------------Bombe------------------------------- */
 
 class Bomb {
   constructor(x, y, id) {
     this.id = id;
     this.x = x;
     this.y = y;
+    this.width = 64;
+    this.height = 64;
     //this.owner = owner;
     this.timePlaced = Date.now();
     this.timeToExplode = 3000; // 3 secondes
-    this.explosionRadius = 50; // Par exemple
+    this.explosionRadius = 4; // Par exemple
   }
 }
 
@@ -216,22 +269,91 @@ function gameLoop() {
   for (const roomId in rooms) {
     const room = rooms[roomId];
     updateBombs(room);
+    updateExplosions(room);
   }
 
   // Répéter la boucle de jeu
   setTimeout(gameLoop, 1000 / 60); // 60 FPS
 }
+
 gameLoop();
 
 function updateBombs(room) {
   for (const bombId in room.bombs) {
     const bomb = room.bombs[bombId];
-
+    // walls
     if (Date.now() - bomb.timePlaced >= bomb.timeToExplode) {
+      //on creer une date pour l'ensemble des explosions
+      let date = Date.now();
+
+      // Créer une explosion au centre
+      createExplosion(bomb.x, bomb.y, "center", room, date);
+
+      // Explosion vers le haut
+      for (let i = 1; i <= bomb.explosionRadius; i++) {
+        if (bomb.y - i * 64 < MAP.startTop) break;
+        //si on collisionne un wall
+        if (collideWall(bomb.x, bomb.y - i * 64, room)) break;
+        collideBomb(bomb.x, bomb.y - i * 64, room);
+        createExplosion(bomb.x, bomb.y - i * 64, "up", room, date);
+      }
+
+      // Explosion vers le bas
+      for (let i = 1; i <= bomb.explosionRadius; i++) {
+        if (bomb.y + i * 64 >= MAP.endBottom) break;
+        if (collideWall(bomb.x, bomb.y + i * 64, room)) break;
+        collideBomb(bomb.x, bomb.y + i * 64, room);
+        createExplosion(bomb.x, bomb.y + i * 64, "down", room, date);
+      }
+
+      // Explosion vers la gauche
+      for (let i = 1; i <= bomb.explosionRadius; i++) {
+        if (bomb.x - i * 64 < MAP.startLeft) break;
+        if (collideWall(bomb.x - i * 64, bomb.y, room)) break;
+        collideBomb(bomb.x - i * 64, bomb.y, room);
+        createExplosion(bomb.x - i * 64, bomb.y, "left", room, date);
+      }
+
+      // Explosion vers la droite
+      for (let i = 1; i <= bomb.explosionRadius; i++) {
+        if (bomb.x + i * 64 >= MAP.endRight) break;
+        if (collideWall(bomb.x + i * 64, bomb.y, room)) break;
+        collideBomb(bomb.x + i * 64, bomb.y, room);
+        createExplosion(bomb.x + i * 64, bomb.y, "right", room, date);
+      }
+
       // Supprimer la bombe de la liste
       delete room.bombs[bombId];
-      // Envoyer un événement aux clients pour indiquer que la bombe a explosé
-      io.emit("bombExploded", bombId);
+
+      // Envoyer un événement aux clients de la room pour indiquer que la bombe a explosé
+      io.to(room.roomData.nameroom).emit("bombExploded", bombId);
+
+      //envoyer les explosions
+      io.to(room.roomData.nameroom).emit("addExplosion", room.explosions);
+    }
+  }
+}
+
+function updateExplosions(room) {
+  for (const explosionId in room.explosions) {
+    const explosion = room.explosions[explosionId];
+    if (Date.now() - explosion.date >= 500) {
+      delete room.explosions[explosionId];
+      io.to(room.roomData.nameroom).emit("explosionEnded", explosionId);
+    }
+    //si un joueur est sur une explosion
+    for (const playerId in room.players) {
+      const player = room.players[playerId];
+      if (
+        player.alive &&
+        player.x + 64 >= explosion.x &&
+        player.x <= explosion.x + 64 &&
+        player.y + 64 >= explosion.y &&
+        player.y <= explosion.y + 64
+      ) {
+        console.log(player.name + " est mort (Id : " + playerId + ")");
+        player.alive = false;
+      }
     }
   }
 }

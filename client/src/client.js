@@ -1,7 +1,8 @@
 import Player from "./player.js";
 import { WALL } from "./const.js";
+import { MAP } from "./const.js";
 
-/*CONSTANTE */
+/*-----------------------CONSTANTE-----------------------*/
 
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
@@ -37,73 +38,56 @@ const keys = {};
 
 let characters = {};
 
+let walls = WALL.wall;
+
 let bombs = {};
 
-//------------------------SOCKET------------------------
+let explosions = {};
 
-//lorsque l'on recois pour afficher
+let roomData = {};
+
+/*-----------------------SOCKET-----------------------*/
+
+// Chat affichage
 const messageShow = (text, user, you) => {
   const parent = document.querySelector("#events");
-  const name = document.createElement("li");
   const chat = document.createElement("li");
   chat.innerHTML = text;
-
-  if (you == 1) {
-    chat.setAttribute("id", "me");
-  } else {
-    chat.setAttribute("id", "other");
+  chat.setAttribute("id", you ? "me" : "other");
+  if (!you) {
+    const name = document.createElement("li");
     name.setAttribute("id", "name");
     name.innerHTML = user.name;
     parent.appendChild(name);
   }
-
   parent.appendChild(chat);
   parent.scrollTop = parent.scrollHeight;
 };
 
-//tout les pseudos partout
-const userList = (users, number) => {
-  for (let i = 0; i < 8; i++) {}
-  for (let i = 0; i < users.length; i++) {
-    const nameid = "player" + number[i];
-    const divname = document.querySelector("#" + nameid);
-    divname.innerHTML = users[i];
-  }
-
-  for (let i = 0; i < 8; i++) {
-    const nameid = "chooseplayer" + (1 + i);
-    const divname = document.querySelector("#" + nameid);
-    divname.innerHTML = "";
-
-    const inputid = "inputchooseplayer" + (1 + i);
-    const input = document.querySelector("#" + inputid);
-    input.disabled = false;
-  }
-
-  for (let i = 0; i < users.length; i++) {
-    const nameid = "chooseplayer" + number[i];
-    const divname = document.querySelector("#" + nameid);
-    divname.innerHTML = users[i];
-
-    const inputid = "inputchooseplayer" + number[i];
-    const input = document.querySelector("#" + inputid);
-    input.disabled = true;
-  }
-};
-
-//ecrire le nom du player qui vient de rejoindre
+// Liste des joueurs affichage
 const playerJoin = (user, number) => {
   document.querySelector("#" + "player" + number).innerHTML = user;
 };
 
-//btn start
+// Admin création du bouton start
 const admin = (admin) => {
   if (admin) {
-    document.querySelector("#start").disabled = false;
+    //create a btn start game
+    const start = document.createElement("button");
+    start.setAttribute("id", "start");
+    start.innerHTML = "Start";
+    document.querySelector("#left").appendChild(start);
+    //lanch a function when the btn is clicked
+    start.addEventListener("click", (e) => {
+      e.preventDefault();
+      sock.emit("start");
+      //remove the btn
+      document.querySelector("#start").remove();
+    });
   }
 };
 
-//lorque l'on envoie le chat
+// Envoie du chat
 const onChatSubmitted = (sock) => (e) => {
   e.preventDefault();
   const input = document.querySelector("#chat");
@@ -112,11 +96,9 @@ const onChatSubmitted = (sock) => (e) => {
   sock.emit("message", text, roomnumber);
 };
 
-//choisir le username et la room et on envoie au serv
-//--join
+// Choisir son nom et sa room
 const onUsernameSubmitted = (sock) => (e) => {
   e.preventDefault();
-
   const name = document.querySelector("#usernameInput");
   const room = document.querySelector("#roomInput");
   if (name.value.trim() == "") {
@@ -126,42 +108,22 @@ const onUsernameSubmitted = (sock) => (e) => {
   } else {
     const param2 = JSON.stringify({ name: name.value, room: room.value });
     const param = JSON.parse(param2);
-    //vider les inputs
     name.value = "";
     room.value = "";
-    //cacher la partie
     document.getElementById("username").hidden = true;
-
-    //stocker le nom de la room
     roomnumber = param.room;
-
     sock.emit("joinRoom", param);
   }
 };
 
-//click sur un radio btn
-// const displayRadioValue = (sock) => (e) => {
-//   e.preventDefault();
-//   var ele = document.getElementsByName("player");
-//   for (let i = 0; i < ele.length; i++) {
-//     if (ele[i].checked) {
-//       sock.emit("changePlayerNumber", i + 1);
-//     }
-//   }
-// };
-
-const onStart = (sock) => (e) => {
-  e.preventDefault();
-  sock.emit("start");
-};
-
-//ajoute un player dans le tableau
+// Ajoute un joueur à notre partie
 const addPlayer = (param) => {
   const character = new Player(param);
   characters[param.id] = character;
   playerJoin(param.name, param.playerNumber);
 };
 
+// Ajoute une bombe à notre partie
 const addBomb = (param) => {
   const newBomb = {
     x: param.x,
@@ -170,6 +132,18 @@ const addBomb = (param) => {
   bombs[param.id] = newBomb;
 };
 
+// Ajoute une explosion à notre partie
+const addExplosion = (param) => {
+  for (let id in param) {
+    const newExplosion = {
+      x: param[id].x,
+      y: param[id].y,
+    };
+    explosions[id] = newExplosion;
+  }
+};
+
+// Met à jour la position d'un joueur
 const updateCharacterPosition = (param) => {
   const character = characters[param.id];
   character.x = param.x;
@@ -177,13 +151,11 @@ const updateCharacterPosition = (param) => {
 };
 
 const sock = io();
-//---------LAUNCH----------
+//-----------------------LAUNCH-----------------------
 (() => {
-  //------------GET------------
+  //-----------------------GET-----------------------
 
   sock.on("message", messageShow); //quand le client recois un message
-
-  sock.on("updateUserList", userList);
 
   sock.on("admin", admin);
 
@@ -193,43 +165,38 @@ const sock = io();
 
   sock.on("addBomb", addBomb);
 
+  sock.on("addExplosion", addExplosion);
+
   sock.on("bombExploded", function (id) {
     delete bombs[id];
   }); // listen for a bomb to explode
 
-  //------------SEND------------
+  sock.on("explosionEnded", function (id) {
+    delete explosions[id];
+  }); // listen for an explosion to end
+
+  //-----------------------SEND-----------------------
+  // Page de chat - Envoyer un message
   document
     .querySelector("#chat-form")
     .addEventListener("submit", onChatSubmitted(sock));
 
-  //pour la connection a la room et avec ton nom on lance la fonction
+  // Page de connexion - Envoyer le nom et la room
   document
     .querySelector("#username_form")
     .addEventListener("submit", onUsernameSubmitted(sock));
-
-  //click sur start
-  document.querySelector("#start").addEventListener("click", onStart(sock));
-
-  //quand on change de joueur
-  if (document.querySelector('input[name="player"]')) {
-    document.querySelectorAll('input[name="player"]').forEach((elem) => {
-      elem.addEventListener("change", displayRadioValue(sock));
-    });
-  }
 })();
 
 /*----------------------LISTERNER----------------------- */
 
-//si on appuie sur une touche
+// Si on appuie sur une touche
 window.addEventListener("keydown", function (e) {
   keys[e.key] = true;
-  //desactiver les actions sur la page
   if (
     ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Tab"].indexOf(e.code) >
     -1
-  ) {
+  )
     e.preventDefault();
-  }
 });
 
 //si on relache la touche
@@ -237,8 +204,7 @@ window.addEventListener("keyup", function (e) {
   delete keys[e.key];
 });
 
-//wall
-let walls = WALL.wall;
+/*-----------------------DRAW-----------------------*/
 
 const drawCharacters = () => {
   // Dessinez chaque personnage
@@ -257,6 +223,18 @@ function drawWalls() {
   }
 }
 
+function drawExplosion() {
+  for (const id in explosions) {
+    ctx.fillStyle = "#FF00FF";
+    const explosion = explosions[id];
+    ctx.fillRect(explosion.x, explosion.y, 16 * 4, 16 * 4);
+    //mettre en gras
+    ctx.font = "bold 35px Arial";
+    ctx.fillStyle = "black";
+    ctx.fillText("E", explosion.x + 20, explosion.y + 40);
+  }
+}
+
 function drawBomb() {
   for (const id in bombs) {
     ctx.fillStyle = "blue";
@@ -269,16 +247,16 @@ function drawBomb() {
   }
 }
 
-// Définissez une fonction pour effacer le canvas et dessiner le jeu
+// Dessiner le jeu à chaque frame (60 fois par seconde)
 function drawGame() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawBomb();
   drawWalls();
+  drawExplosion();
   drawCharacters();
 }
 
-let updateTime = 0;
-let drawTime1 = 0;
+/*--------------------------MOUVEMENT DU PERSONNAGE--------------------------- */
 
 // Vérifier si le joueur appuie sur l'une des touches fléchées.
 function checkArrowKeys(keys) {
@@ -294,9 +272,32 @@ function checkArrowKeys(keys) {
   );
 }
 
-/*--------------------------MOUVEMENT DU PERSONNAGE--------------------------- */
+/*--------------------------BOMBE--------------------------- */
+function placeBomb() {
+  //Centrer la bombe sur la grille
+  let x =
+    Math.round((characters[sock.id].x + MAP.startLeft) / 64) * 64 -
+    MAP.startLeft;
+  let y =
+    Math.round((characters[sock.id].y + MAP.startTop) / 64) * 64 - MAP.startTop;
 
-//deplacement du joueur + changement de la frame pour sa position + changement de son statue moving ou pas
+  // Bombes déjà posées
+  for (const id in bombs) {
+    const bomb = bombs[id];
+    if (bomb.x == x && bomb.y == y) {
+      return;
+    }
+  }
+
+  // Envoyer la position de la bombe au serveur
+  sock.emit("addBomb", {
+    room: roomnumber,
+    x: x,
+    y: y,
+  });
+}
+
+//Déplacer le joueur
 function movePlayer() {
   const speed = 4; // 1px sur le jeu = 4px sur le canvas
 
@@ -306,7 +307,7 @@ function movePlayer() {
     lastKeyPressed = Object.keys(keys)[Object.keys(keys).length - 2];
   }
 
-  //quand on click sur les touches
+  // Click sur une touche
   if (lastKeyPressed == "ArrowLeft" || lastKeyPressed == "q") {
     characters[sock.id].move(-speed, 0, walls);
   } else if (lastKeyPressed == "ArrowRight" || lastKeyPressed == "d") {
@@ -321,24 +322,15 @@ function movePlayer() {
   }
 }
 
-/*--------------------------BOMBE--------------------------- */
-function placeBomb() {
-  sock.emit("addBomb", {
-    room: roomnumber,
-    x: characters[sock.id].x,
-    y: characters[sock.id].y,
-  });
-}
+/*---------------------------WALL--------------------------- */
 
-/*----------------------------------BOMBE-----------------------------------*/
+/*---------------------------TIME--------------------------- */
 
-// /*-----------------WALL------------------- */
+/*---------------------------BOUCLE INFINI--------------------------- */
+let updateTime = 0;
+let drawTime1 = 0;
 
-/*-----------------------------TIME------------------------- */
-
-/*--------------------------BOUCLE INFINI------------------------------- */
-
-function animate2(currentTime) {
+function animate(currentTime) {
   // Calculer le temps écoulé depuis la dernière exécution de la fonction animate()
   const deltaTime = currentTime - updateTime;
   const drawTime = currentTime - drawTime1;
@@ -369,8 +361,8 @@ function animate2(currentTime) {
   }
 
   // Appeler à nouveau la fonction animate() pour continuer l'animation
-  requestAnimationFrame(animate2);
+  requestAnimationFrame(animate);
 }
 
 // Lancer l'animation en appelant la fonction animate()
-requestAnimationFrame(animate2);
+requestAnimationFrame(animate);
