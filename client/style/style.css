@@ -24,7 +24,7 @@ body {
   height: 90vh;
   justify-content: space-between;
   align-items: center;
-  gap: 10px;
+  gap: 15px;
 }
 
 .players {
@@ -50,6 +50,8 @@ body {
   border: #fed766 1px solid;
   border-radius: 5px;
   padding: 10px;
+  gap: 10px;
+  overflow-y: auto;
 }
 
 canvas {
@@ -61,6 +63,12 @@ canvas {
   -moz-background-size: cover;
   -o-background-size: cover;
   margin: 0 10px;
+}
+
+canvas:focus {
+  outline: none;
+  /*box shadow center*/
+  box-shadow: 0 0 6px 1px #fed766a6;
 }
 
 .chat {
@@ -80,25 +88,25 @@ canvas {
   margin-right: 3px;
 }
 /*scroll bar*/
-.messages::-webkit-scrollbar {
+::-webkit-scrollbar {
   width: 8px; /* THIS WILL RESET THE DEFAULT SCORLLBAR STYLING */
   border-radius: 10px;
 }
 
 /* TO STYLE THE SCROLLBAR TRACK */
-.messages::-webkit-scrollbar-track {
+::-webkit-scrollbar-track {
   background-color: #403f4000; /* THIS WILL SET THE COLOR OF THE SCROLLBAR TRACK */
   border-radius: 10px;
   margin-right: 8px;
 }
 
 /* TO STYLE THE SCROLLBAR THUMB */
-.messages::-webkit-scrollbar-thumb {
+::-webkit-scrollbar-thumb {
   background-color: #403f40;
   border-radius: 10px;
 }
 
-.messages::-webkit-scrollbar-thumb:hover {
+::-webkit-scrollbar-thumb:hover {
   background-color: #9c9c9c;
 }
 
@@ -273,10 +281,20 @@ span {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  align-items: center;
 }
+
+/*tt les btn dans la div .param*/
 
 .btnParam {
   z-index: 1;
+  aspect-ratio: 1/1;
+  background-color: #00000000;
+  border: 0;
+  font-size: 25px;
+  text-align: center;
+  cursor: pointer;
+  line-height: 10px;
 }
 
 .textParam {
@@ -286,6 +304,17 @@ span {
   flex-direction: row;
   width: 150px;
   justify-content: space-between;
+  align-items: center;
+}
+
+.map {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+img {
+  image-rendering: pixelated;
 }
 
 .apparition-gauche {

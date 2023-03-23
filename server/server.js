@@ -44,6 +44,7 @@ io.on("connection", (socket) => {
           nextExplosionId: 0,
         },
       };
+      generateWalls(param.room);
     }
 
     //Si il y a plus de 8 joueurs dans la room, on quitte
@@ -58,12 +59,12 @@ io.on("connection", (socket) => {
     }
 
     //creation du numero de joueur le plus petit disponible
+    let smallestPlayerNumber = 1;
     const usedNumbers = new Set(
       Object.values(rooms[param.room].players).map(
         (player) => player.playerNumber
       )
     );
-    let smallestPlayerNumber = 1;
     while (usedNumbers.has(smallestPlayerNumber)) {
       smallestPlayerNumber++;
     }
@@ -72,8 +73,8 @@ io.on("connection", (socket) => {
     rooms[param.room].players[socket.id] = {
       id: socket.id,
       name: param.name,
-      x: 0,
-      y: 0,
+      x: 32,
+      y: 128,
       alive: true,
       admin: Object.keys(rooms[param.room].players).length == 0,
       playerNumber: smallestPlayerNumber,
@@ -213,6 +214,20 @@ io.on("connection", (socket) => {
 
 /*--------------------------BOMB------------------------------- */
 
+class Bomb {
+  constructor(x, y, id) {
+    this.id = id;
+    this.x = x;
+    this.y = y;
+    this.width = 16;
+    this.height = 16;
+    //this.owner = owner;
+    this.timePlaced = Date.now();
+    this.timeToExplode = 3000; // 3 secondes
+    this.explosionRadius = 4; // Par exemple
+  }
+}
+
 const adminStartBtn = (isBtn, room) => {
   //recuperer l'index du joueur qui est admin
   let index = Object.keys(rooms[room].players).find(
@@ -260,20 +275,21 @@ function collideBomb(x, y, room) {
   }
 }
 
-/*--------------------------Bombe------------------------------- */
+/*--------------------------WALL------------------------------- */
 
-class Bomb {
-  constructor(x, y, id) {
-    this.id = id;
-    this.x = x;
-    this.y = y;
-    this.width = 64;
-    this.height = 64;
-    //this.owner = owner;
-    this.timePlaced = Date.now();
-    this.timeToExplode = 3000; // 3 secondes
-    this.explosionRadius = 4; // Par exemple
+function generateWalls(room) {
+  for (let x = 0; x < MAP.width; x++) {
+    let y = 0;
+    rooms[room].walls.push({
+      x,
+      y,
+      width: 16,
+      height: 16,
+      type: "destructible",
+    });
   }
+
+  console.log(rooms[room].walls);
 }
 
 //----------------------BOUCLE INFINI---------------------------
@@ -303,35 +319,35 @@ function updateBombs(room) {
 
       // Explosion vers le haut
       for (let i = 1; i <= bomb.explosionRadius; i++) {
-        if (bomb.y - i * 64 < MAP.startTop) break;
+        if (bomb.y - i * 16 < MAP.startTop) break;
         //si on collisionne un wall
-        if (collideWall(bomb.x, bomb.y - i * 64, room)) break;
-        collideBomb(bomb.x, bomb.y - i * 64, room);
-        createExplosion(bomb.x, bomb.y - i * 64, "up", room, date);
+        if (collideWall(bomb.x, bomb.y - i * 16, room)) break;
+        collideBomb(bomb.x, bomb.y - i * 16, room);
+        createExplosion(bomb.x, bomb.y - i * 16, "up", room, date);
       }
 
       // Explosion vers le bas
       for (let i = 1; i <= bomb.explosionRadius; i++) {
-        if (bomb.y + i * 64 >= MAP.endBottom) break;
-        if (collideWall(bomb.x, bomb.y + i * 64, room)) break;
-        collideBomb(bomb.x, bomb.y + i * 64, room);
-        createExplosion(bomb.x, bomb.y + i * 64, "down", room, date);
+        if (bomb.y + i * 16 >= MAP.endBottom) break;
+        if (collideWall(bomb.x, bomb.y + i * 16, room)) break;
+        collideBomb(bomb.x, bomb.y + i * 16, room);
+        createExplosion(bomb.x, bomb.y + i * 16, "down", room, date);
       }
 
       // Explosion vers la gauche
       for (let i = 1; i <= bomb.explosionRadius; i++) {
-        if (bomb.x - i * 64 < MAP.startLeft) break;
-        if (collideWall(bomb.x - i * 64, bomb.y, room)) break;
-        collideBomb(bomb.x - i * 64, bomb.y, room);
-        createExplosion(bomb.x - i * 64, bomb.y, "left", room, date);
+        if (bomb.x - i * 16 < MAP.startLeft) break;
+        if (collideWall(bomb.x - i * 16, bomb.y, room)) break;
+        collideBomb(bomb.x - i * 16, bomb.y, room);
+        createExplosion(bomb.x - i * 16, bomb.y, "left", room, date);
       }
 
       // Explosion vers la droite
       for (let i = 1; i <= bomb.explosionRadius; i++) {
-        if (bomb.x + i * 64 >= MAP.endRight) break;
-        if (collideWall(bomb.x + i * 64, bomb.y, room)) break;
-        collideBomb(bomb.x + i * 64, bomb.y, room);
-        createExplosion(bomb.x + i * 64, bomb.y, "right", room, date);
+        if (bomb.x + i * 16 >= MAP.endRight) break;
+        if (collideWall(bomb.x + i * 16, bomb.y, room)) break;
+        collideBomb(bomb.x + i * 16, bomb.y, room);
+        createExplosion(bomb.x + i * 16, bomb.y, "right", room, date);
       }
 
       // Supprimer la bombe de la liste
@@ -358,10 +374,10 @@ function updateExplosions(room) {
       const player = room.players[playerId];
       if (
         player.alive &&
-        player.x + 64 >= explosion.x &&
-        player.x <= explosion.x + 64 &&
-        player.y + 64 >= explosion.y &&
-        player.y <= explosion.y + 64
+        player.x + 16 >= explosion.x &&
+        player.x <= explosion.x + 16 &&
+        player.y + 16 >= explosion.y &&
+        player.y <= explosion.y + 16
       ) {
         console.log(player.name + " est mort (Id : " + playerId + ")");
         player.alive = false;

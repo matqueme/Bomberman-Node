@@ -53,7 +53,7 @@ class Player {
     return speeds[this.speed];
   }
 
-  move(dx, dy, walls) {
+  move(dx, dy, walls, bombs) {
     // Calculez la boîte englobante du joueur pour la prochaine position
     let nextBoundingBox = {
       x: this.x + dx,
@@ -79,51 +79,48 @@ class Player {
         return;
       }
 
-      if (
-        nextBoundingBox.x < wall.x + wall.width &&
-        nextBoundingBox.x + nextBoundingBox.width > wall.x &&
-        nextBoundingBox.y < wall.y + wall.height &&
-        nextBoundingBox.y + nextBoundingBox.height > wall.y
-      ) {
-        // Si le joueur a heurté un mur, s'il n'est pas au centre le deplacer (haut,bas ou gauche,droite)
-        //droite
-
+      //Collision avec les murs
+      if (this.isCollisions(nextBoundingBox, wall)) {
+        // Droite
         if (this.x + this.width <= wall.x) {
+          // Si le mur est plus en dessous on monte et qu'il ny a pas de mur au dessus a droite
           if (
             this.y + this.height < wall.y + wall.height &&
-            //si le mur est au dessus du mur a droite
-            !walls.find((wal) => wal.x === wall.x && wal.y === wall.y - 64)
-          ) {
+            !walls.find((wal) => wal.x === wall.x && wal.y === wall.y - 16)
+          )
             this.y -= dx;
-          } else if (
+          // Si le mur est plus au dessus on descend et qu'il ny a pas de mur en dessous a droite
+          else if (
             this.y + this.height > wall.y + wall.height &&
-            !walls.find((wal) => wal.x === wall.x && wal.y === wall.y + 64)
+            !walls.find((wal) => wal.x === wall.x && wal.y === wall.y + 16)
           )
             this.y += dx;
+          // Si le joueur se déplace vers la droite et qu'il y a un mur a droite on le bloques
           else this.x = wall.x - this.width;
-          //gauche
+
+          // Gauche
         } else if (this.x >= wall.x + wall.width) {
           if (
             this.y + this.height < wall.y + wall.height &&
-            !walls.find((wal) => wal.x === wall.x && wal.y === wall.y - 64)
+            !walls.find((wal) => wal.x === wall.x && wal.y === wall.y - 16)
           )
             this.y += dx;
           else if (
             this.y + this.height > wall.y + wall.height &&
-            !walls.find((wal) => wal.x === wall.x && wal.y === wall.y + 64)
+            !walls.find((wal) => wal.x === wall.x && wal.y === wall.y + 16)
           )
             this.y -= dx;
           else this.x = wall.x + wall.width;
-          //bas
+          // Bas
         } else if (this.y + this.height <= wall.y) {
           if (
             this.x + this.width < wall.x + wall.width &&
-            !walls.find((wal) => wal.x === wall.x - 64 && wal.y === wall.y)
+            !walls.find((wal) => wal.x === wall.x - 16 && wal.y === wall.y)
           )
             this.x -= dy;
           else if (
             this.x + this.width > wall.x + wall.width &&
-            !walls.find((wal) => wal.x === wall.x + 64 && wal.y === wall.y)
+            !walls.find((wal) => wal.x === wall.x + 16 && wal.y === wall.y)
           )
             this.x += dy;
           else this.y = wall.y - this.height;
@@ -131,12 +128,12 @@ class Player {
         } else if (this.y >= wall.y + wall.height) {
           if (
             this.x + this.width < wall.x + wall.width &&
-            !walls.find((wal) => wal.x === wall.x - 64 && wal.y === wall.y)
+            !walls.find((wal) => wal.x === wall.x - 16 && wal.y === wall.y)
           )
             this.x += dy;
           else if (
             this.x + this.width > wall.x + wall.width &&
-            !walls.find((wal) => wal.x === wall.x + 64 && wal.y === wall.y)
+            !walls.find((wal) => wal.x === wall.x + 16 && wal.y === wall.y)
           )
             this.x -= dy;
           else this.y = wall.y + wall.height;
@@ -145,17 +142,55 @@ class Player {
         return;
       }
     }
+    let keys = Object.keys(bombs);
 
+    // Vérifiez la collision avec les bombs , s'il y a collision on bloque le joueur, sinon si on est sur la moitie on ne fait rien
+    for (let key of keys) {
+      let bomb = bombs[key];
+      if (this.isCollisions(nextBoundingBox, bomb)) {
+        if (!this.onHalfBomb(bomb) && !this.farAwayBomb(bomb, dx, dy)) return;
+      }
+    }
     // Pas de collision détectée, déplacez le joueur
     this.x += dx;
     this.y += dy;
   }
 
+  //si on s'éloigne de la bombe on peut se déplacer
+  farAwayBomb(bomb, dx, dy) {
+    return (
+      (this.x < bomb.x && this.x + this.width >= bomb.x && dx < 0) ||
+      (this.x > bomb.x && this.x <= bomb.x + 16 && dx > 0) ||
+      (this.y < bomb.y && this.y + this.height >= bomb.y && dy < 0) ||
+      (this.y > bomb.y && this.y <= bomb.y + 16 && dy > 0)
+    );
+  }
+
+  //si on est sur la moitie de la bombe on peut se déplacer
+  onHalfBomb(bomb) {
+    return (
+      this.x + this.width / 2 >= bomb.x &&
+      this.x + this.width / 2 <= bomb.x + 16 &&
+      this.y + this.height / 2 >= bomb.y &&
+      this.y + this.height / 2 <= bomb.y + 16
+    );
+  }
+
+  //vérifie si il y a collision
+  isCollisions(nextBoundingBox, object) {
+    return (
+      nextBoundingBox.x < object.x + 16 &&
+      nextBoundingBox.x + nextBoundingBox.width > object.x &&
+      nextBoundingBox.y < object.y + 16 &&
+      nextBoundingBox.y + nextBoundingBox.height > object.y
+    );
+  }
+
   /*------------------------ANNIMATION ------------------------------ */
   //pour placer la hitbox du joueur, tout les calculs se font en fonction de la hitbox
   hitboxPlayer() {
-    this.hitboxX = this.x + 2 * 4; //calcul pour le positionement
-    this.hitboxY = this.y + 18 * 4; //calcul pour le positionement
+    this.hitboxX = this.x + 2; //calcul pour le positionement
+    this.hitboxY = this.y + 18; //calcul pour le positionement
   }
 
   //affiche le personnage sur la map

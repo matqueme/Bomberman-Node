@@ -112,6 +112,7 @@ const onUsernameSubmitted = (sock) => (e) => {
     room.value = ""; // clear the room field
     document.getElementById("modal").style.display = "none";
     sock.emit("joinRoom", param);
+    canvas.focus();
   }
 };
 
@@ -165,7 +166,6 @@ const addExplosion = (param) => {
 // Lance la partie
 const startgame = (param) => {
   roomData.gameStarted = param;
-  console.log(roomData);
 };
 
 // Met à jour la position d'un joueur
@@ -223,7 +223,7 @@ const sock = io();
 /*----------------------LISTERNER----------------------- */
 
 // Si on appuie sur une touche
-window.addEventListener("keydown", function (e) {
+canvas.addEventListener("keydown", function (e) {
   keys[e.key] = true;
   if (
     ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Tab"].indexOf(e.code) >
@@ -233,7 +233,7 @@ window.addEventListener("keydown", function (e) {
 });
 
 //si on relache la touche
-window.addEventListener("keyup", function (e) {
+canvas.addEventListener("keyup", function (e) {
   delete keys[e.key];
 });
 
@@ -245,7 +245,7 @@ const drawCharacters = () => {
     const character = characters[id];
     if (character.alive) {
       ctx.fillStyle = "red";
-      ctx.fillRect(character.x, character.y, 16 * 4, 16 * 4);
+      ctx.fillRect(character.x, character.y, 16, 16);
     }
   }
 };
@@ -262,11 +262,11 @@ function drawExplosion() {
   for (const id in explosions) {
     ctx.fillStyle = "#FF00FF";
     const explosion = explosions[id];
-    ctx.fillRect(explosion.x, explosion.y, 16 * 4, 16 * 4);
+    ctx.fillRect(explosion.x, explosion.y, 16, 16);
     //mettre en gras
-    ctx.font = "bold 35px Arial";
+    ctx.font = "bold 8px Arial";
     ctx.fillStyle = "black";
-    ctx.fillText("E", explosion.x + 20, explosion.y + 40);
+    ctx.fillText("E", explosion.x + 5, explosion.y + 10);
   }
 }
 
@@ -274,11 +274,11 @@ function drawBomb() {
   for (const id in bombs) {
     ctx.fillStyle = "blue";
     const bomb = bombs[id];
-    ctx.fillRect(bomb.x, bomb.y, 16 * 4, 16 * 4);
+    ctx.fillRect(bomb.x, bomb.y, 16, 16);
     //mettre en gras
-    ctx.font = "bold 35px Arial";
+    ctx.font = "bold 8px Arial";
     ctx.fillStyle = "black";
-    ctx.fillText("B", bomb.x + 20, bomb.y + 40);
+    ctx.fillText("B", bomb.x + 5, bomb.y + 10);
   }
 }
 
@@ -311,10 +311,10 @@ function checkArrowKeys(keys) {
 function placeBomb() {
   //Centrer la bombe sur la grille
   let x =
-    Math.round((characters[sock.id].x + MAP.startLeft) / 64) * 64 -
+    Math.round((characters[sock.id].x + MAP.startLeft) / 16) * 16 -
     MAP.startLeft;
   let y =
-    Math.round((characters[sock.id].y + MAP.startTop) / 64) * 64 - MAP.startTop;
+    Math.round((characters[sock.id].y + MAP.startTop) / 16) * 16 - MAP.startTop;
 
   // Bombes déjà posées
   for (const id in bombs) {
@@ -334,7 +334,7 @@ function placeBomb() {
 
 //Déplacer le joueur
 function movePlayer() {
-  const speed = 4; // 1px sur le jeu = 4px sur le canvas
+  const speed = 1; // 1px sur le jeu = 4px sur le canvas
 
   let lastKeyPressed = Object.keys(keys)[Object.keys(keys).length - 1];
 
@@ -344,13 +344,13 @@ function movePlayer() {
 
   // Click sur une touche
   if (lastKeyPressed == "ArrowLeft" || lastKeyPressed == "q") {
-    characters[sock.id].move(-speed, 0, walls);
+    characters[sock.id].move(-speed, 0, walls, bombs);
   } else if (lastKeyPressed == "ArrowRight" || lastKeyPressed == "d") {
-    characters[sock.id].move(+speed, 0, walls);
+    characters[sock.id].move(+speed, 0, walls, bombs);
   } else if (lastKeyPressed == "ArrowUp" || lastKeyPressed == "z") {
-    characters[sock.id].move(0, -speed, walls);
+    characters[sock.id].move(0, -speed, walls, bombs);
   } else if (lastKeyPressed == "ArrowDown" || lastKeyPressed == "s") {
-    characters[sock.id].move(0, +speed, walls);
+    characters[sock.id].move(0, +speed, walls, bombs);
   }
   if (keys[" "] || keys["Enter"]) {
     placeBomb();

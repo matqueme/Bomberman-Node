@@ -1,31 +1,31 @@
 //map constant values
 export const MAP = {
   //map size
-  width: 960, //240
-  innerHeight: 576, //144
-  startTop: 128, //32
-  startLeft: 32, //8
-  endBottom: 1472, //368
-  endRight: 992, //248
+  width: 240,
+  innerHeight: 144,
+  startTop: 32,
+  startLeft: 8,
+  endBottom: 368,
+  endRight: 248,
 
-  widthMap: 16 * 256, //taille de la map
-  heightMap: 16 * 384, //taille de la map
+  widthMap: 256, //taille de la map
+  heightMap: 384, //taille de la map
 };
 
 //player constant values
 export const PLAYER = {
   width: 20, // taille image
   height: 30, //taille image
-  widthPlayer: 16 * 4, //taille du joueur
-  heightPlayer: 16 * 4, //taille du joueur
+  widthPlayer: 16, //taille du joueur
+  heightPlayer: 16, //taille du joueur
 };
 
 export const WALL = {
   wall: [
-    { x: 32, y: 128 + 144 * 4, width: 64, height: 64 },
-    { x: 32, y: 128 + 176 * 4, width: 64, height: 64 },
-    { x: 32 + 224 * 4, y: 128 + 144 * 4, width: 64, height: 64 },
-    { x: 32 + 224 * 4, y: 128 + 176 * 4, width: 64, height: 64 },
+    { x: 8, y: 32 + 144, width: 16, height: 16, type: "indestructible" },
+    { x: 8, y: 32 + 176, width: 16, height: 16, type: "indestructible" },
+    { x: 8 + 224, y: 32 + 144, width: 16, height: 16, type: "indestructible" },
+    { x: 8 + 224, y: 32 + 176, width: 16, height: 16, type: "indestructible" },
   ],
 };
 
@@ -36,10 +36,11 @@ const yValues = [16, 48, 80, 112, 144, 160, 176, 208, 240, 272, 304];
 for (let i = 0; i < xValues.length; i++) {
   for (let j = 0; j < yValues.length; j++) {
     WALL.wall.push({
-      x: 32 + xValues[i] * 4,
-      y: 128 + yValues[j] * 4,
-      width: 64,
-      height: 64,
+      x: 8 + xValues[i],
+      y: 32 + yValues[j],
+      width: 16,
+      height: 16,
+      type: "indestructible",
     });
   }
 }
