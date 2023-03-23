@@ -80,15 +80,15 @@ io.on("connection", (socket) => {
       nextBombId: 0,
     };
 
-    // Envoyer les informations d'Admin
-    if (rooms[param.room].players[socket.id].admin) {
-      io.to(socket.id).emit("admin", true);
+    if (Object.keys(rooms[param.room].players).length >= 2) {
+      adminStartBtn(true, param.room);
     }
 
     // Envoyer ses informations au joueur qui vient de rejoindre
     for (let id in rooms[param.room].players) {
       io.to(socket.id).emit("addCharacter", rooms[param.room].players[id]);
     }
+    io.to(socket.id).emit("addParam", rooms[param.room].roomData);
 
     // Envoyer les informations du nouveau joueur aux autres joueurs
     socket.broadcast.emit("addCharacter", rooms[param.room].players[socket.id]);
@@ -133,20 +133,6 @@ io.on("connection", (socket) => {
     });
   });
 
-  //Modify player parameter -------------------
-  socket.on("editplayer", (param, nbtab) => {
-    // let user = users.getUser(socket.id);
-    // if (user) {
-    //   //ca update player
-    //   settings.updatePlayer(nbtab, user.room, param);
-    //   io.to(socket.id).emit(
-    //     "paramGame",
-    //     settings.getAllOfAGame(user.room),
-    //     nbtab
-    //   );
-    // }
-  });
-
   //Add bomb
   socket.on("addBomb", (data) => {
     if (
@@ -168,14 +154,13 @@ io.on("connection", (socket) => {
   });
 
   //START -------------------
-  socket.on("start", () => {
-    // let user = users.getUser(socket.id);
-    // if (user && settings.getState(user.room) == 0) {
-    //   settings.changeState(user.room, 1);
-    //   settings.start(user.room, users.getPlayerNumberList(user.room));
-    //   io.to(user.room).emit("paramGame", settings.getAllOfAGame(user.room));
-    //   io.to(user.room).emit("stateGame", 1);
-    // }
+  socket.on("start", (room) => {
+    //start game
+    let user = rooms[room].players[socket.id];
+    if (user.admin) {
+      rooms[room].roomData.gameStarted = true;
+      io.to(room).emit("start", rooms[room].roomData.gameStarted);
+    }
   });
 
   //DECONNECTION
@@ -198,19 +183,46 @@ io.on("connection", (socket) => {
           );
         }
 
+        // Envoyer les informations de déconnexion au autres joueurs
+        socket.broadcast.emit("removeCharacter", socket.id);
+
         // On supprime le joueur de la room
+        console.log(
+          `Le joueur "${
+            room.players[socket.id].name
+          }" a été supprimé de la room "${roomName}"`
+        );
         delete room.players[socket.id];
-        console.log(`Le joueur a été supprimé de la room "${roomName}"`);
 
         // Si il n'y a plus de joueurs dans la room, on supprime la room
         if (Object.keys(room.players).length === 0) {
           console.log(`La room "${roomName}" a été supprimée`);
           delete rooms[roomName];
+        } else {
+          // Si il y a plus de 2 joueurs dans la room, on active le bouton de lancement de partie
+          if (Object.keys(room.players).length >= 2) {
+            adminStartBtn(true, roomName);
+          } else {
+            adminStartBtn(false, roomName);
+          }
         }
       }
     });
   });
 });
+
+/*--------------------------BOMB------------------------------- */
+
+const adminStartBtn = (isBtn, room) => {
+  //recuperer l'index du joueur qui est admin
+  let index = Object.keys(rooms[room].players).find(
+    (key) => rooms[room].players[key].admin
+  );
+  // Envoyer les informations d'Admin
+  if (rooms[room].players[index].admin) {
+    io.to(index).emit("admin", isBtn);
+  }
+};
 /*--------------------------Explosion------------------------------- */
 
 function createExplosion(x, y, type, room, date) {
@@ -328,7 +340,7 @@ function updateBombs(room) {
       // Envoyer un événement aux clients de la room pour indiquer que la bombe a explosé
       io.to(room.roomData.nameroom).emit("bombExploded", bombId);
 
-      //envoyer les explosions
+      // Envoyer les explosions
       io.to(room.roomData.nameroom).emit("addExplosion", room.explosions);
     }
   }
@@ -353,6 +365,7 @@ function updateExplosions(room) {
       ) {
         console.log(player.name + " est mort (Id : " + playerId + ")");
         player.alive = false;
+        io.to(room.roomData.nameroom).emit("playerDied", playerId);
       }
     }
   }

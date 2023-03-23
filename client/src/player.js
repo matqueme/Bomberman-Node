@@ -6,6 +6,9 @@ class Player {
     /*ID*/
     this.id = param.id;
 
+    /*Vivant ou mort*/
+    this.alive = param.alive;
+
     /*POSITON AND NUMBER*/
     this.playerNumber = param.playerNumber;
     this.x = param.x; //position x en start
@@ -38,19 +41,6 @@ class Player {
   }
 
   /*RETURN*/
-
-  get getNumberPlayer() {
-    return this.playerNumber;
-  }
-
-  get getbombnumber() {
-    return this.bombnumber;
-  }
-
-  get getbombpower() {
-    return this.bombpower;
-  }
-
   get getSpeed() {
     //dictionnaire de la vitesse qui sera
     const speeds = {

@@ -31,9 +31,6 @@ bombSprite.src = "img/sprite-bombe.png";
 const itemSprite = new Image();
 itemSprite.src = "img/sprite-item.png";
 
-//numero de la room
-let roomnumber = "";
-
 const keys = {};
 
 let characters = {};
@@ -50,7 +47,7 @@ let roomData = {};
 
 // Chat affichage
 const messageShow = (text, user, you) => {
-  const parent = document.querySelector("#events");
+  const parent = document.querySelector("#msg");
   const chat = document.createElement("li");
   chat.innerHTML = text;
   chat.setAttribute("id", you ? "me" : "other");
@@ -74,26 +71,29 @@ const admin = (admin) => {
   if (admin) {
     //create a btn start game
     const start = document.createElement("button");
-    start.setAttribute("id", "start");
+    start.setAttribute("id", "startbtn");
     start.innerHTML = "Start";
-    document.querySelector("#left").appendChild(start);
+    document.querySelector("#start").appendChild(start);
     //lanch a function when the btn is clicked
     start.addEventListener("click", (e) => {
       e.preventDefault();
-      sock.emit("start");
+      sock.emit("start", roomData.nameroom);
       //remove the btn
-      document.querySelector("#start").remove();
+      document.querySelector("#startbtn").remove();
     });
+  } else {
+    if (document.querySelector("#startbtn"))
+      document.querySelector("#startbtn").remove();
   }
 };
 
 // Envoie du chat
 const onChatSubmitted = (sock) => (e) => {
   e.preventDefault();
-  const input = document.querySelector("#chat");
+  const input = document.querySelector("#chat-input");
   const text = input.value;
   input.value = "";
-  sock.emit("message", text, roomnumber);
+  sock.emit("message", text, roomData.nameroom);
 };
 
 // Choisir son nom et sa room
@@ -102,16 +102,15 @@ const onUsernameSubmitted = (sock) => (e) => {
   const name = document.querySelector("#usernameInput");
   const room = document.querySelector("#roomInput");
   if (name.value.trim() == "") {
-    const error = document.querySelector("#error");
+    document.querySelector("#error").innerHTML =
+      "Veuillez rentrer un nom valide !";
     name.value = "";
-    error.innerHTML = "Veuillez rentrer un nom valide !";
   } else {
     const param2 = JSON.stringify({ name: name.value, room: room.value });
     const param = JSON.parse(param2);
-    name.value = "";
-    room.value = "";
-    document.getElementById("username").hidden = true;
-    roomnumber = param.room;
+    name.value = ""; // clear the name field
+    room.value = ""; // clear the room field
+    document.getElementById("modal").style.display = "none";
     sock.emit("joinRoom", param);
   }
 };
@@ -121,6 +120,26 @@ const addPlayer = (param) => {
   const character = new Player(param);
   characters[param.id] = character;
   playerJoin(param.name, param.playerNumber);
+};
+
+const removeCharacter = (id) => {
+  if (characters[id]) {
+    document.querySelector("#player" + characters[id].playerNumber).innerHTML =
+      "-";
+    delete characters[id];
+  }
+};
+
+const playerDied = (id) => {
+  characters[id].alive = false;
+  //Set the player name en italique et barré
+  document.querySelector("#player" + characters[id].playerNumber).style =
+    "font-style: italic; text-decoration: line-through;";
+};
+
+// Ajoute les paramètres de la partie
+const addParam = (param) => {
+  roomData = param;
 };
 
 // Ajoute une bombe à notre partie
@@ -143,6 +162,12 @@ const addExplosion = (param) => {
   }
 };
 
+// Lance la partie
+const startgame = (param) => {
+  roomData.gameStarted = param;
+  console.log(roomData);
+};
+
 // Met à jour la position d'un joueur
 const updateCharacterPosition = (param) => {
   const character = characters[param.id];
@@ -163,9 +188,17 @@ const sock = io();
 
   sock.on("addCharacter", addPlayer);
 
+  sock.on("removeCharacter", removeCharacter);
+
+  sock.on("playerDied", playerDied);
+
+  sock.on("addParam", addParam);
+
   sock.on("addBomb", addBomb);
 
   sock.on("addExplosion", addExplosion);
+
+  sock.on("start", startgame);
 
   sock.on("bombExploded", function (id) {
     delete bombs[id];
@@ -178,7 +211,7 @@ const sock = io();
   //-----------------------SEND-----------------------
   // Page de chat - Envoyer un message
   document
-    .querySelector("#chat-form")
+    .querySelector("#chat-send")
     .addEventListener("submit", onChatSubmitted(sock));
 
   // Page de connexion - Envoyer le nom et la room
@@ -210,8 +243,10 @@ const drawCharacters = () => {
   // Dessinez chaque personnage
   for (const id in characters) {
     const character = characters[id];
-    ctx.fillStyle = "red";
-    ctx.fillRect(character.x, character.y, 16 * 4, 16 * 4);
+    if (character.alive) {
+      ctx.fillStyle = "red";
+      ctx.fillRect(character.x, character.y, 16 * 4, 16 * 4);
+    }
   }
 };
 
@@ -291,7 +326,7 @@ function placeBomb() {
 
   // Envoyer la position de la bombe au serveur
   sock.emit("addBomb", {
-    room: roomnumber,
+    room: roomData.nameroom,
     x: x,
     y: y,
   });
@@ -332,6 +367,7 @@ let drawTime1 = 0;
 
 function animate(currentTime) {
   // Calculer le temps écoulé depuis la dernière exécution de la fonction animate()
+  //if (roomData.gameStarted) {
   const deltaTime = currentTime - updateTime;
   const drawTime = currentTime - drawTime1;
 
@@ -353,12 +389,13 @@ function animate(currentTime) {
     if (checkArrowKeys(keys)) {
       // Envoyer au serveur la position du joueur
       sock.emit("updateCharacterPosition", {
-        room: roomnumber,
+        room: roomData.nameroom,
         x: characters[sock.id].x,
         y: characters[sock.id].y,
       });
     }
   }
+  //}
 
   // Appeler à nouveau la fonction animate() pour continuer l'animation
   requestAnimationFrame(animate);
