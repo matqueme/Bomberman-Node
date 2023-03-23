@@ -21,7 +21,7 @@ export const PLAYER = {
 };
 
 export const WALL = {
-  wall: [
+  walls: [
     { x: 8, y: 32 + 144, width: 16, height: 16, type: "indestructible" },
     { x: 8, y: 32 + 176, width: 16, height: 16, type: "indestructible" },
     { x: 8 + 224, y: 32 + 144, width: 16, height: 16, type: "indestructible" },
@@ -35,7 +35,7 @@ const yValues = [16, 48, 80, 112, 144, 160, 176, 208, 240, 272, 304];
 //faire un quadrillage de 7x4
 for (let i = 0; i < xValues.length; i++) {
   for (let j = 0; j < yValues.length; j++) {
-    WALL.wall.push({
+    WALL.walls.push({
       x: 8 + xValues[i],
       y: 32 + yValues[j],
       width: 16,

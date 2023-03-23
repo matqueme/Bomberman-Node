@@ -35,7 +35,7 @@ io.on("connection", (socket) => {
         players: {},
         bombs: {},
         explosions: {},
-        walls: WALL.wall,
+        walls: [WALL.walls].flat(),
         roomData: {
           nameroom: param.room,
           maxPlayers: 8,
@@ -257,6 +257,7 @@ function createExplosion(x, y, type, room, date) {
 }
 
 function collideWall(x, y, room) {
+  //console.log(x, y);
   for (let id = 0; id < room.walls.length; id++) {
     const wall = room.walls[id];
     if (x == wall.x && y == wall.y) {
@@ -277,19 +278,44 @@ function collideBomb(x, y, room) {
 
 /*--------------------------WALL------------------------------- */
 
+function getRandomArbitrary(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
+function random(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
 function generateWalls(room) {
-  for (let x = 0; x < MAP.width; x++) {
-    let y = 0;
-    rooms[room].walls.push({
+  let wallTotal = 15 * 9 * 2;
+  wallTotal = wallTotal - 7 * 8; //indestructible wall
+  const randomRatioWall = getRandomArbitrary(0.55, 0.8);
+  const wallDestructible = Math.floor(wallTotal * randomRatioWall);
+
+  const wall = {
+    x: 0,
+    y: 0,
+  };
+
+  //81 = indestructible wall
+  while (rooms[room].walls.length - 81 < wallDestructible) {
+    const x = random(0, 14) * 16 + MAP.startLeft;
+    const y = random(0, 20) * 16 + MAP.startTop;
+    const wall = {
       x,
       y,
       width: 16,
       height: 16,
-      type: "destructible",
-    });
+      destructible: true,
+    };
+    if (!collideWall(x, y, rooms[room])) {
+      rooms[room].walls.push(wall);
+      console.log(wall);
+      console.log(",");
+    }
   }
-
-  console.log(rooms[room].walls);
+  console.log(wallDestructible);
+  console.log(rooms[room].walls.length);
 }
 
 //----------------------BOUCLE INFINI---------------------------
