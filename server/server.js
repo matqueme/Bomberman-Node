@@ -38,12 +38,14 @@ io.on("connection", (socket) => {
         explosions: {},
         walls: [WALL.walls].flat(),
         wallsDestroy: [],
+        items: {},
         roomData: {
           nameroom: param.room,
           maxPlayers: 8,
           gameStarted: false,
           nextBombId: 0,
           nextExplosionId: 0,
+          nextItemId: 0,
         },
       };
       generateWalls(param.room);
@@ -304,6 +306,8 @@ function isWallDestroyed(x, y, room) {
 function wallDestructible(x, y, room) {
   for (let wall of room.walls) {
     if (x == wall.x && y == wall.y && wall.destructible) {
+      //generate item
+      generateItem(room, wall.x, wall.y);
       //remove the wall
       room.walls.splice(room.walls.indexOf(wall), 1);
       //ajouter le wall dans la liste des walls a supprimer
@@ -336,11 +340,6 @@ function generateWalls(room) {
   const randomRatioWall = getRandomArbitrary(0.55, 0.8);
   const wallDestructible = Math.floor(wallTotal * randomRatioWall);
 
-  const wall = {
-    x: 0,
-    y: 0,
-  };
-
   //81 = indestructible wall
   while (rooms[room].walls.length - 81 < wallDestructible) {
     const x = random(0, 14) * 16 + MAP.startLeft;
@@ -362,9 +361,37 @@ function generateWalls(room) {
       rooms[room].walls.push(wall);
     }
   }
+
+  rooms[room].walls.sort((a, b) => a.y - b.y);
 }
 
-//----------------------BOUCLE INFINI---------------------------
+/*--------------------------ITEM------------------------------- */
+
+function generateItem(room, x, y) {
+  const probaItem = getRandomArbitrary(0, 100);
+  console.log(probaItem);
+  //35% de chance d'avoir un item
+  if (probaItem < 35) {
+    const item = {
+      x: x,
+      y: y,
+    };
+    room.items[room.roomData.nextItemId] = item;
+
+    //envoyer les nouveaux items aux joueurs
+    io.to(room.roomData.nameroom).emit(
+      "addItem",
+      room.items[room.roomData.nextItemId],
+      room.roomData.nextItemId
+    );
+
+    room.roomData.nextItemId++;
+  } else {
+    console.log("pas d'item");
+  }
+}
+
+/*-------------------------------BOUCLE INFINI-------------------------------*/
 function gameLoop() {
   for (const roomId in rooms) {
     const room = rooms[roomId];
@@ -464,10 +491,10 @@ function updateExplosions(room) {
       const player = room.players[playerId];
       if (
         player.alive &&
-        player.x + 16 >= explosion.x &&
-        player.x <= explosion.x + 16 &&
-        player.y + 16 >= explosion.y &&
-        player.y <= explosion.y + 16
+        player.x + 16 > explosion.x &&
+        player.x < explosion.x + 16 &&
+        player.y + 16 > explosion.y &&
+        player.y < explosion.y + 16
       ) {
         console.log(player.name + " est mort (Id : " + playerId + ")");
         player.alive = false;

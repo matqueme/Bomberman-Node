@@ -43,6 +43,8 @@ let explosions = {};
 
 let roomData = {};
 
+let items = {};
+
 /*-----------------------SOCKET-----------------------*/
 
 // Chat affichage
@@ -167,6 +169,15 @@ const addExplosion = (param) => {
   }
 };
 
+// Ajoute un item
+const addItem = (param, id) => {
+  const newItem = {
+    x: param.x,
+    y: param.y,
+  };
+  items[id] = newItem;
+};
+
 // Lance la partie
 const startgame = (param) => {
   roomData.gameStarted = param;
@@ -201,6 +212,8 @@ const sock = io();
   sock.on("addWalls", addWalls);
 
   sock.on("addBomb", addBomb);
+
+  sock.on("addItem", addItem);
 
   sock.on("addExplosion", addExplosion);
 
@@ -258,13 +271,25 @@ const drawCharacters = () => {
 
 function drawWalls() {
   for (let i = 0; i < walls.length; i++) {
+    // afficher avec des sprites plutot que des rectangles de bombSprite
+
     let wall = walls[i];
-    wall.destructible ? (ctx.fillStyle = "orange") : (ctx.fillStyle = "gray");
-    ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
+    wall.destructible &&
+      ctx.drawImage(
+        bombSprite,
+        16 * 23,
+        0,
+        16,
+        20,
+        wall.x,
+        wall.y - 4,
+        wall.width,
+        wall.height + 4
+      );
   }
 }
 
-function drawExplosion() {
+function drawExplosions() {
   for (const id in explosions) {
     ctx.fillStyle = "#FF00FF";
     const explosion = explosions[id];
@@ -276,7 +301,7 @@ function drawExplosion() {
   }
 }
 
-function drawBomb() {
+function drawBombs() {
   for (const id in bombs) {
     ctx.fillStyle = "blue";
     const bomb = bombs[id];
@@ -288,13 +313,27 @@ function drawBomb() {
   }
 }
 
+function drawItems() {
+  for (const id in items) {
+    ctx.fillStyle = "green";
+    const item = items[id];
+    ctx.fillRect(item.x, item.y, 16, 16);
+    //mettre en gras
+    ctx.font = "bold 8px Arial";
+    ctx.fillStyle = "black";
+    ctx.fillText("I", item.x + 5, item.y + 10);
+  }
+}
+
 // Dessiner le jeu à chaque frame (60 fois par seconde)
 function drawGame() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawWalls();
-  drawBomb();
-  drawExplosion();
+  drawItems();
+  drawBombs();
+  drawExplosions();
   drawCharacters();
+  drawWalls();
+  ctx.drawImage(wallUnbreakableImage, 0, 0, 256, 384);
 }
 
 /*--------------------------MOUVEMENT DU PERSONNAGE--------------------------- */

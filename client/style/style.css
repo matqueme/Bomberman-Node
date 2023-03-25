@@ -52,6 +52,7 @@ body {
   padding: 10px;
   gap: 10px;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 canvas {
@@ -345,4 +346,65 @@ img {
     transform: translateX(0);
     opacity: 1;
   }
+}
+
+.team {
+  align-self: center;
+  display: grid;
+  grid-template-rows: repeat(4, 100px);
+  grid-template-columns: repeat(2, 100px); /* 4 colonnes de largeur égale */
+  grid-gap: 10px;
+}
+
+.team div {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 15px;
+  padding: 15px;
+
+  align-items: center;
+  justify-items: center;
+  background-size: cover;
+  /*pixelisation*/
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+.team img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.white {
+  background-image: url(../img/backgroundTeam/TeamBack-1.png);
+}
+
+.black {
+  background-image: url(../img/backgroundTeam/TeamBack-2.png);
+}
+
+.red {
+  background-image: url(../img/backgroundTeam/TeamBack-3.png);
+}
+
+.blue {
+  background-image: url(../img/backgroundTeam/TeamBack-4.png);
+}
+
+.green {
+  background-image: url(../img/backgroundTeam/TeamBack-5.png);
+}
+
+.yellow {
+  background-image: url(../img/backgroundTeam/TeamBack-6.png);
+}
+
+.pink {
+  background-image: url(../img/backgroundTeam/TeamBack-7.png);
+}
+
+.cyan {
+  background-image: url(../img/backgroundTeam/TeamBack-8.png);
 }

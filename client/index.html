@@ -78,6 +78,7 @@
                 <button class="btnParam" id="btnPositionDroite">&#8250;</button>
               </div>
             </div>
+
             <div class="param">
               Map :
               <div class="textParam">
@@ -87,6 +88,177 @@
                   <div class="mapTxt">Normal</div>
                 </div>
                 <button class="btnParam" id="">&#8250;</button>
+              </div>
+            </div>
+
+            <div class="param">
+              Round :
+              <div class="textParam">
+                <button class="btnParam" id="">&#8249;</button>
+                <div id="position">
+                  <div id="textPosition">3</div>
+                </div>
+                <button class="btnParam" id="">&#8250;</button>
+              </div>
+            </div>
+
+            <div class="param">
+              Temps :
+              <div class="textParam">
+                <button class="btnParam" id="">&#8249;</button>
+                <div id="position">
+                  <div id="textPosition">2:00</div>
+                </div>
+                <button class="btnParam" id="">&#8250;</button>
+              </div>
+            </div>
+
+            <div class="param">
+              Muraille :
+              <div class="textParam">
+                <button class="btnParam" id="">&#8249;</button>
+                <div id="position">
+                  <div id="textPosition">Oui</div>
+                </div>
+                <button class="btnParam" id="">&#8250;</button>
+              </div>
+            </div>
+
+            <div class="param">
+              Crane :
+              <div class="textParam">
+                <button class="btnParam" id="">&#8249;</button>
+                <div id="position">
+                  <div id="textPosition">Oui</div>
+                </div>
+                <button class="btnParam" id="">&#8250;</button>
+              </div>
+            </div>
+
+            <div class="param">
+              Jackpot :
+              <div class="textParam">
+                <button class="btnParam" id="">&#8249;</button>
+                <div id="position">
+                  <div id="textPosition">Non</div>
+                </div>
+                <button class="btnParam" id="">&#8250;</button>
+              </div>
+            </div>
+            Team :
+            <div class="team">
+              <div
+                class="white"
+                id="div1"
+                ondrop="drop(event)"
+                ondragover="allowDrop(event)"
+              >
+                <img
+                  src="img/head/1.png"
+                  alt="white"
+                  draggable="true"
+                  ondragstart="drag(event)"
+                  id="drag1"
+                />
+              </div>
+              <div
+                class="black"
+                id="div2"
+                ondrop="drop(event)"
+                ondragover="allowDrop(event)"
+              >
+                <img
+                  src="img/head/2.png"
+                  alt="black"
+                  draggable="true"
+                  ondragstart="drag(event)"
+                  id="drag2"
+                />
+              </div>
+
+              <div
+                class="red"
+                id="div3"
+                ondrop="drop(event)"
+                ondragover="allowDrop(event)"
+              >
+                <img
+                  src="img/head/3.png"
+                  alt="red"
+                  draggable="true"
+                  ondragstart="drag(event)"
+                  id="drag3"
+                />
+              </div>
+              <div
+                class="blue"
+                id="div4"
+                ondrop="drop(event)"
+                ondragover="allowDrop(event)"
+              >
+                <img
+                  src="img/head/4.png"
+                  alt="blue"
+                  draggable="true"
+                  ondragstart="drag(event)"
+                  id="drag4"
+                />
+              </div>
+              <div
+                class="green"
+                id="div5"
+                ondrop="drop(event)"
+                ondragover="allowDrop(event)"
+              >
+                <img
+                  src="img/head/5.png"
+                  alt="green"
+                  draggable="true"
+                  ondragstart="drag(event)"
+                  id="drag5"
+                />
+              </div>
+              <div
+                class="yellow"
+                id="div6"
+                ondrop="drop(event)"
+                ondragover="allowDrop(event)"
+              >
+                <img
+                  src="img/head/6.png"
+                  alt="yellow"
+                  draggable="true"
+                  ondragstart="drag(event)"
+                  id="drag6"
+                />
+              </div>
+              <div
+                class="pink"
+                id="div7"
+                ondrop="drop(event)"
+                ondragover="allowDrop(event)"
+              >
+                <img
+                  src="img/head/7.png"
+                  alt="pink"
+                  draggable="true"
+                  ondragstart="drag(event)"
+                  id="drag7"
+                />
+              </div>
+              <div
+                class="cyan"
+                id="div8"
+                ondrop="drop(event)"
+                ondragover="allowDrop(event)"
+              >
+                <img
+                  src="img/head/8.png"
+                  alt="cyan"
+                  draggable="true"
+                  ondragstart="drag(event)"
+                  id="drag8"
+                />
               </div>
             </div>
 
@@ -116,6 +288,7 @@
   </body>
 
   <script src="/socket.io/socket.io.js"></script>
+  <script src="./src/drop.js"></script>
 
   <script type="module" src="src/client.js"></script>
 
