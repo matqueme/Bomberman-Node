@@ -4,6 +4,7 @@ import path from "path";
 import { Server } from "socket.io";
 import { WALL } from "./const.js";
 import { MAP } from "./const.js";
+import { PLAYERSTARTPOSITIONS } from "./const.js";
 
 const app = express();
 
@@ -36,6 +37,7 @@ io.on("connection", (socket) => {
         bombs: {},
         explosions: {},
         walls: [WALL.walls].flat(),
+        wallsDestroy: [],
         roomData: {
           nameroom: param.room,
           maxPlayers: 8,
@@ -73,8 +75,8 @@ io.on("connection", (socket) => {
     rooms[param.room].players[socket.id] = {
       id: socket.id,
       name: param.name,
-      x: 32,
-      y: 128,
+      x: PLAYERSTARTPOSITIONS["player" + smallestPlayerNumber][0].x,
+      y: PLAYERSTARTPOSITIONS["player" + smallestPlayerNumber][0].y,
       alive: true,
       admin: Object.keys(rooms[param.room].players).length == 0,
       playerNumber: smallestPlayerNumber,
@@ -90,6 +92,8 @@ io.on("connection", (socket) => {
       io.to(socket.id).emit("addCharacter", rooms[param.room].players[id]);
     }
     io.to(socket.id).emit("addParam", rooms[param.room].roomData);
+
+    io.to(socket.id).emit("addWalls", rooms[param.room].walls);
 
     // Envoyer les informations du nouveau joueur aux autres joueurs
     socket.broadcast.emit("addCharacter", rooms[param.room].players[socket.id]);
@@ -286,6 +290,46 @@ function random(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
+// Check if the wall is already destroyed
+function isWallDestroyed(x, y, room) {
+  for (let i = 0; i < room.wallsDestroy.length; i++) {
+    if (x == room.wallsDestroy[i].x && y == room.wallsDestroy[i].y) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// Destructible wall for disable the double destruction of a wall
+function wallDestructible(x, y, room) {
+  for (let wall of room.walls) {
+    if (x == wall.x && y == wall.y && wall.destructible) {
+      //remove the wall
+      room.walls.splice(room.walls.indexOf(wall), 1);
+      //ajouter le wall dans la liste des walls a supprimer
+      room.wallsDestroy.push({
+        x: wall.x,
+        y: wall.y,
+        time: 500,
+      });
+      //envoyer les nouveaux walls aux joueurs
+      io.to(room.roomData.nameroom).emit("addWalls", room.walls);
+    }
+  }
+}
+
+function isPlayerStart(x, y) {
+  for (let player in PLAYERSTARTPOSITIONS) {
+    for (let position of PLAYERSTARTPOSITIONS[player]) {
+      if (x == position.x && y == position.y) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+// Generate walls
 function generateWalls(room) {
   let wallTotal = 15 * 9 * 2;
   wallTotal = wallTotal - 7 * 8; //indestructible wall
@@ -308,14 +352,16 @@ function generateWalls(room) {
       height: 16,
       destructible: true,
     };
-    if (!collideWall(x, y, rooms[room])) {
+    if (
+      !collideWall(x, y, rooms[room]) &&
+      y != 144 + MAP.startTop &&
+      y != 160 + MAP.startTop &&
+      y != 176 + MAP.startTop &&
+      !isPlayerStart(x, y)
+    ) {
       rooms[room].walls.push(wall);
-      console.log(wall);
-      console.log(",");
     }
   }
-  console.log(wallDestructible);
-  console.log(rooms[room].walls.length);
 }
 
 //----------------------BOUCLE INFINI---------------------------
@@ -324,6 +370,7 @@ function gameLoop() {
     const room = rooms[roomId];
     updateBombs(room);
     updateExplosions(room);
+    updateWallDestroy(room);
   }
 
   // Répéter la boucle de jeu
@@ -346,8 +393,13 @@ function updateBombs(room) {
       // Explosion vers le haut
       for (let i = 1; i <= bomb.explosionRadius; i++) {
         if (bomb.y - i * 16 < MAP.startTop) break;
+        //pour ne pas faire exploser apres les walls deja detruit
+        if (isWallDestroyed(bomb.x, bomb.y - i * 16, room)) break;
         //si on collisionne un wall
-        if (collideWall(bomb.x, bomb.y - i * 16, room)) break;
+        if (collideWall(bomb.x, bomb.y - i * 16, room)) {
+          wallDestructible(bomb.x, bomb.y - i * 16, room);
+          break;
+        }
         collideBomb(bomb.x, bomb.y - i * 16, room);
         createExplosion(bomb.x, bomb.y - i * 16, "up", room, date);
       }
@@ -355,7 +407,11 @@ function updateBombs(room) {
       // Explosion vers le bas
       for (let i = 1; i <= bomb.explosionRadius; i++) {
         if (bomb.y + i * 16 >= MAP.endBottom) break;
-        if (collideWall(bomb.x, bomb.y + i * 16, room)) break;
+        if (isWallDestroyed(bomb.x, bomb.y + i * 16, room)) break;
+        if (collideWall(bomb.x, bomb.y + i * 16, room)) {
+          wallDestructible(bomb.x, bomb.y + i * 16, room);
+          break;
+        }
         collideBomb(bomb.x, bomb.y + i * 16, room);
         createExplosion(bomb.x, bomb.y + i * 16, "down", room, date);
       }
@@ -363,7 +419,11 @@ function updateBombs(room) {
       // Explosion vers la gauche
       for (let i = 1; i <= bomb.explosionRadius; i++) {
         if (bomb.x - i * 16 < MAP.startLeft) break;
-        if (collideWall(bomb.x - i * 16, bomb.y, room)) break;
+        if (isWallDestroyed(bomb.x - i * 16, bomb.y, room)) break;
+        if (collideWall(bomb.x - i * 16, bomb.y, room)) {
+          wallDestructible(bomb.x - i * 16, bomb.y, room);
+          break;
+        }
         collideBomb(bomb.x - i * 16, bomb.y, room);
         createExplosion(bomb.x - i * 16, bomb.y, "left", room, date);
       }
@@ -371,7 +431,11 @@ function updateBombs(room) {
       // Explosion vers la droite
       for (let i = 1; i <= bomb.explosionRadius; i++) {
         if (bomb.x + i * 16 >= MAP.endRight) break;
-        if (collideWall(bomb.x + i * 16, bomb.y, room)) break;
+        if (isWallDestroyed(bomb.x + i * 16, bomb.y, room)) break;
+        if (collideWall(bomb.x + i * 16, bomb.y, room)) {
+          wallDestructible(bomb.x + i * 16, bomb.y, room);
+          break;
+        }
         collideBomb(bomb.x + i * 16, bomb.y, room);
         createExplosion(bomb.x + i * 16, bomb.y, "right", room, date);
       }
@@ -409,6 +473,15 @@ function updateExplosions(room) {
         player.alive = false;
         io.to(room.roomData.nameroom).emit("playerDied", playerId);
       }
+    }
+  }
+}
+
+function updateWallDestroy(room) {
+  for (let i = 0; i < room.wallsDestroy.length; i++) {
+    const wall = room.wallsDestroy[i];
+    if (Date.now() - wall.time >= 500) {
+      room.wallsDestroy.splice(i, 1);
     }
   }
 }

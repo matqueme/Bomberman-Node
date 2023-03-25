@@ -35,7 +35,7 @@ const keys = {};
 
 let characters = {};
 
-let walls = WALL.wall;
+let walls = {};
 
 let bombs = {};
 
@@ -143,6 +143,10 @@ const addParam = (param) => {
   roomData = param;
 };
 
+const addWalls = (param) => {
+  walls = param;
+};
+
 // Ajoute une bombe à notre partie
 const addBomb = (param) => {
   const newBomb = {
@@ -193,6 +197,8 @@ const sock = io();
   sock.on("playerDied", playerDied);
 
   sock.on("addParam", addParam);
+
+  sock.on("addWalls", addWalls);
 
   sock.on("addBomb", addBomb);
 
@@ -251,9 +257,9 @@ const drawCharacters = () => {
 };
 
 function drawWalls() {
-  ctx.fillStyle = "gray";
   for (let i = 0; i < walls.length; i++) {
     let wall = walls[i];
+    wall.destructible ? (ctx.fillStyle = "orange") : (ctx.fillStyle = "gray");
     ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
   }
 }
@@ -285,8 +291,8 @@ function drawBomb() {
 // Dessiner le jeu à chaque frame (60 fois par seconde)
 function drawGame() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawBomb();
   drawWalls();
+  drawBomb();
   drawExplosion();
   drawCharacters();
 }
