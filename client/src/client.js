@@ -1,6 +1,6 @@
 import Player from "./player.js";
-import { WALL } from "./const.js";
 import { MAP } from "./const.js";
+//import { TAPIS } from "./const.js";
 
 /*-----------------------CONSTANTE-----------------------*/
 
@@ -23,7 +23,7 @@ for (let i = 0; i < 8; i++) {
 
 //initialisation de l'image sprite
 const wallUnbreakableImage = new Image();
-wallUnbreakableImage.src = "img/unbreakable-wall.png";
+wallUnbreakableImage.src = "img/map/unbreakableWall-1.png";
 
 const bombSprite = new Image();
 bombSprite.src = "img/sprite-bombe.png";
@@ -44,6 +44,8 @@ let explosions = {};
 let roomData = {};
 
 let items = {};
+
+let tapis = [];
 
 /*-----------------------SOCKET-----------------------*/
 
@@ -325,9 +327,18 @@ function drawItems() {
   }
 }
 
+function drawCarpet() {
+  for (let i = 0; i < tapis.length; i++) {
+    ctx.fillStyle = "purple";
+    let carpetTile = tapis[i];
+    ctx.fillRect(carpetTile.x, carpetTile.y, 16, 16);
+  }
+}
+
 // Dessiner le jeu à chaque frame (60 fois par seconde)
 function drawGame() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawCarpet();
   drawItems();
   drawBombs();
   drawExplosions();
@@ -409,12 +420,14 @@ function movePlayer() {
 /*---------------------------BOUCLE INFINI--------------------------- */
 let updateTime = 0;
 let drawTime1 = 0;
+let moveCarpet = 0;
 
 function animate(currentTime) {
   // Calculer le temps écoulé depuis la dernière exécution de la fonction animate()
   //if (roomData.gameStarted) {
   const deltaTime = currentTime - updateTime;
-  const drawTime = currentTime - drawTime1;
+  const deltaTime2 = currentTime - drawTime1;
+  const deltaTime3 = currentTime - moveCarpet;
 
   if (characters[sock.id]) {
     // Mettre à jour la position des utilisateurs toutes les 12ms
@@ -427,7 +440,7 @@ function animate(currentTime) {
   }
 
   // Dessiner sur le canvas toutes les 8ms
-  if (drawTime >= 16) {
+  if (deltaTime2 >= 16) {
     drawGame();
     drawTime1 = currentTime;
     // Si le joueur a bouger on envoie la position
@@ -440,8 +453,55 @@ function animate(currentTime) {
       });
     }
   }
-  //}
 
+  // Déplacer le tapis toutes les 75ms - A mettre sur le serveur
+  if (characters[sock.id]) {
+    if (deltaTime3 >= 75) {
+      moveCarpet = currentTime;
+      for (let i = 0; i < tapis.length; i++) {
+        let carpetTile = tapis[i];
+        if (
+          characters[sock.id].x < carpetTile.x + 8 &&
+          characters[sock.id].x + 8 >= carpetTile.x &&
+          characters[sock.id].y < carpetTile.y + 8 &&
+          characters[sock.id].y + 8 >= carpetTile.y
+        ) {
+          carpetTile.direction == "right" &&
+            characters[sock.id].move(+1, 0, walls, bombs);
+          carpetTile.direction == "left" &&
+            characters[sock.id].move(-1, 0, walls, bombs);
+          carpetTile.direction == "down" &&
+            characters[sock.id].move(0, +1, walls, bombs);
+          carpetTile.direction == "top" &&
+            characters[sock.id].move(0, -1, walls, bombs);
+        }
+
+        //si il y a une bombe sur le tapis
+        for (const id in bombs) {
+          const bomb = bombs[id];
+          if (
+            bomb.x < carpetTile.x + 8 &&
+            bomb.x + 8 >= carpetTile.x &&
+            bomb.y < carpetTile.y + 8 &&
+            bomb.y + 8 >= carpetTile.y
+          ) {
+            if (carpetTile.direction == "right") {
+              bomb.y == carpetTile.y ? (bomb.x += 1) : (bomb.y -= 1);
+            }
+            if (carpetTile.direction == "left") {
+              bomb.y == carpetTile.y ? (bomb.x -= 1) : (bomb.y += 1);
+            }
+            if (carpetTile.direction == "down") {
+              bomb.x == carpetTile.x ? (bomb.y += 1) : (bomb.x += 1);
+            }
+            if (carpetTile.direction == "top") {
+              bomb.x == carpetTile.x ? (bomb.y -= 1) : (bomb.x -= 1);
+            }
+          }
+        }
+      }
+    }
+  }
   // Appeler à nouveau la fonction animate() pour continuer l'animation
   requestAnimationFrame(animate);
 }

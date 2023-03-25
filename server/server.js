@@ -48,7 +48,7 @@ io.on("connection", (socket) => {
           nextItemId: 0,
         },
       };
-      generateWalls(param.room);
+      //generateWalls(param.room);
     }
 
     //Si il y a plus de 8 joueurs dans la room, on quitte
@@ -369,7 +369,6 @@ function generateWalls(room) {
 
 function generateItem(room, x, y) {
   const probaItem = getRandomArbitrary(0, 100);
-  console.log(probaItem);
   //35% de chance d'avoir un item
   if (probaItem < 35) {
     const item = {
@@ -386,8 +385,6 @@ function generateItem(room, x, y) {
     );
 
     room.roomData.nextItemId++;
-  } else {
-    console.log("pas d'item");
   }
 }
 

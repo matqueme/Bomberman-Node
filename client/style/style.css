@@ -57,7 +57,7 @@ body {
 
 canvas {
   height: 90vh;
-  background: #212121 url(../img/background.png) no-repeat;
+  background: #212121 url(../img/map/background-1.png) no-repeat;
   background-size: cover;
   image-rendering: pixelated;
   -webkit-background-size: cover;
@@ -238,9 +238,7 @@ input {
   background: rgb(63, 63, 63);
   max-width: 80%;
 }
-span {
-  margin: 15px;
-}
+
 #name {
   margin-left: 10px;
   padding-left: 10px;
@@ -407,4 +405,47 @@ img {
 
 .cyan {
   background-image: url(../img/backgroundTeam/TeamBack-8.png);
+}
+
+.param {
+  position: relative;
+}
+
+.param .tooltiptext {
+  visibility: hidden;
+  width: 80%;
+  background-color: #0d1821;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 8px 0;
+  position: absolute;
+  z-index: 1;
+  top: 95%;
+  left: 50%;
+  transform: translateX(-50%);
+  translate: 0 10px;
+  filter: drop-shadow(0px 0px 0.3px #fed766) drop-shadow(0px 0px 0.3px #fed766)
+    drop-shadow(0px 0px 0.3px #fed766) drop-shadow(0px 0px 0.3px #fed766)
+    drop-shadow(0px 0px 0.3px #fed766) drop-shadow(0px 0px 0.3px #fed766);
+}
+
+.param .tooltiptext::after {
+  content: "";
+  position: absolute;
+  bottom: 97%;
+  left: 50%;
+  margin-left: -6px;
+  border-width: 6px;
+  border-style: solid;
+  border-color: transparent transparent #0d1821 transparent;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.param:hover .tooltiptext {
+  visibility: visible;
+}
+
+.mapTxt {
+  margin-top: 10px;
 }

@@ -20,27 +20,90 @@ export const PLAYER = {
   heightPlayer: 16, //taille du joueur
 };
 
-export const WALL = {
-  wall: [
-    { x: 8, y: 32 + 144, width: 16, height: 16, type: "indestructible" },
-    { x: 8, y: 32 + 176, width: 16, height: 16, type: "indestructible" },
-    { x: 8 + 224, y: 32 + 144, width: 16, height: 16, type: "indestructible" },
-    { x: 8 + 224, y: 32 + 176, width: 16, height: 16, type: "indestructible" },
-  ],
-};
+//tapis roulan
+// export const TAPIS = [
+//   {
+//     x: MAP.startLeft + 32,
+//     y: MAP.startTop + 32,
+//     width: TAPIS.width,
+//     height: TAPIS.height,
+//     speed: TAPIS.speed,
+//     direction: "right",
+//   },
+//   {
+//     x: MAP.startLeft + 48,
+//     y: MAP.startTop + 32,
+//     width: TAPIS.width,
+//     height: TAPIS.height,
+//     speed: TAPIS.speed,
+//     direction: "right",
+//   },
+//   {
+//     x: MAP.startLeft + 64,
+//     y: MAP.startTop + 32,
+//     width: TAPIS.width,
+//     height: TAPIS.height,
+//     speed: TAPIS.speed,
+//     direction: "down",
+//   },
+//   {
+//     x: MAP.startLeft + 64,
+//     y: MAP.startTop + 32,
+//     width: TAPIS.width,
+//     height: TAPIS.height,
+//     speed: TAPIS.speed,
+//     direction: "down",
+//   },
+//   {
+//     x: MAP.startLeft + 64,
+//     y: MAP.startTop + 48,
+//     width: TAPIS.width,
+//     height: TAPIS.height,
+//     speed: TAPIS.speed,
+//     direction: "down",
+//   },
+//   {
+//     x: MAP.startLeft + 64,
+//     y: MAP.startTop + 64,
+//     width: TAPIS.width,
+//     height: TAPIS.height,
+//     speed: TAPIS.speed,
+//     direction: "left",
+//   },
+//   {
+//     x: MAP.startLeft + 48,
+//     y: MAP.startTop + 64,
+//     width: TAPIS.width,
+//     height: TAPIS.height,
+//     speed: TAPIS.speed,
+//     direction: "left",
+//   },
+//   {
+//     x: MAP.startLeft + 32,
+//     y: MAP.startTop + 64,
+//     width: TAPIS.width,
+//     height: TAPIS.height,
+//     speed: TAPIS.speed,
+//     direction: "top",
+//   },
+//   {
+//     x: MAP.startLeft + 32,
+//     y: MAP.startTop + 48,
+//     width: TAPIS.width,
+//     height: TAPIS.height,
+//     speed: TAPIS.speed,
+//     direction: "top",
+//   },
+// ];
 
-const xValues = [16, 48, 80, 112, 144, 176, 208];
-const yValues = [16, 48, 80, 112, 144, 160, 176, 208, 240, 272, 304];
-
-//faire un quadrillage de 7x4
-for (let i = 0; i < xValues.length; i++) {
-  for (let j = 0; j < yValues.length; j++) {
-    WALL.wall.push({
-      x: 8 + xValues[i],
-      y: 32 + yValues[j],
-      width: 16,
-      height: 16,
-      type: "indestructible",
-    });
-  }
-}
+// for (let i = 0; i < 11; i++) {
+//   const tapiss = {
+//     x: MAP.startLeft + 16 * i + 32,
+//     y: MAP.startTop + 32,
+//     width: TAPIS.width,
+//     height: TAPIS.height,
+//     speed: TAPIS.speed,
+//     direction: "right",
+//   };
+//   tapis.push(tapiss);
+// }
