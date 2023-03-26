@@ -27,6 +27,7 @@ export const MAPS = {
     source: "background-1.png",
     wall: "unbreakableWall-1.png",
     generatioWall: 1,
+    wallType: 1,
   },
   2: {
     name: "Bouclier",
@@ -35,6 +36,7 @@ export const MAPS = {
     source: "background-1.png",
     wall: "unbreakableWall-1.png",
     generatioWall: 1,
+    wallType: 1,
   },
   3: {
     name: "Crâne",
@@ -43,6 +45,7 @@ export const MAPS = {
     source: "background-2.png",
     wall: "unbreakableWall-2.png",
     generatioWall: 1,
+    wallType: 2,
   },
   4: {
     name: "Mystère",
@@ -51,6 +54,7 @@ export const MAPS = {
     source: "background-1.png",
     wall: "unbreakableWall-1.png",
     generatioWall: 1,
+    wallType: 1,
   },
   5: {
     name: "Vite vite",
@@ -59,6 +63,7 @@ export const MAPS = {
     source: "background-3.png",
     wall: "unbreakableWall-3.png",
     generatioWall: 1,
+    wallType: 3,
   },
   6: {
     name: "Tunnels",
@@ -67,6 +72,7 @@ export const MAPS = {
     source: "background-4.png",
     wall: "unbreakableWall-4.png",
     generatioWall: 2, //ne pas mettre le milieu du tunnel
+    wallType: 1,
   },
   7: {
     name: "Unipont",
@@ -75,6 +81,7 @@ export const MAPS = {
     source: "background-5.png",
     wall: "unbreakableWall-5.png",
     generatioWall: 1,
+    wallType: 1,
   },
   8: {
     name: "Tripont",
@@ -83,6 +90,7 @@ export const MAPS = {
     source: "background-6.png",
     wall: "unbreakableWall-6.png",
     generatioWall: 1,
+    wallType: 1,
   },
   9: {
     name: "Tapis",
@@ -91,6 +99,7 @@ export const MAPS = {
     source: "background-7.png",
     wall: "unbreakableWall-7.png",
     generatioWall: 3, //ne pas générer sur les tapis
+    wallType: 1,
   },
   10: {
     name: "Tremplin",
@@ -99,6 +108,7 @@ export const MAPS = {
     source: "background-8.png",
     wall: "unbreakableWall-8.png",
     generatioWall: 4, //ne pas générer sur les tremplins
+    wallType: 1,
   },
   11: {
     name: "Détour",
@@ -107,6 +117,7 @@ export const MAPS = {
     source: "background-9.png",
     wall: "unbreakableWall-9.png",
     generatioWall: 5, //ne pas générer sur les tunnels et les flèches
+    wallType: 1,
   },
   12: {
     name: "Va-et-vient",
@@ -115,6 +126,7 @@ export const MAPS = {
     source: "background-10.png",
     wall: "unbreakableWall-10.png",
     generatioWall: 6, //ne pas générer sur les balacoirs
+    wallType: 1,
   },
   13: {
     name: "Maxi",
@@ -123,6 +135,7 @@ export const MAPS = {
     source: "background-11.png",
     wall: "unbreakableWall-11.png",
     generatioWall: 7, //pas de génération de blocs
+    wallType: 1,
   },
   14: {
     name: "Buffet",
@@ -131,6 +144,7 @@ export const MAPS = {
     source: "background-12.png",
     wall: "unbreakableWall-12.png",
     generatioWall: 8, //pas de wall indesctructible et génération de blocs en cercle
+    wallType: 1,
   },
   15: {
     name: "Mini",
@@ -139,6 +153,7 @@ export const MAPS = {
     source: "background-13.png",
     wall: "unbreakableWall-13.png",
     generatioWall: 9, //wall indestructible que au dessus et génération avec emplacement au centre pour 4 personnages
+    wallType: 1,
   },
   16: {
     name: "Inferno",
@@ -146,6 +161,7 @@ export const MAPS = {
     source: "background-14.png",
     wall: "unbreakableWall-14.png",
     generatioWall: 10, //pas de wall indestructible
+    wallType: 1,
   },
 
   17: {
@@ -155,6 +171,7 @@ export const MAPS = {
     source: "background-15.png",
     wall: "unbreakableWall-15.png",
     generatioWall: 11, //pas wall indestructible et génération normal
+    wallType: 2,
   },
   18: {
     name: "Couronne",
@@ -163,6 +180,7 @@ export const MAPS = {
     source: "background-16.png",
     wall: "unbreakableWall-16.png",
     generatioWall: 12, // ne pas fénérer trop bas et ni trop haut
+    wallType: 4,
   },
   19: {
     name: "Diadème",
@@ -170,7 +188,8 @@ export const MAPS = {
       "Dans le niveau Diadème, il n'y a pas de blocs mou et vous démarrez avec la puissance maximum.",
     source: "background-20.png",
     wall: "unbreakableWall-20.png",
-    generatioWall: 13, //pas de wall !
+    generatioWall: 13, //génération normal bloc durs et bloc mou partie au dessus (peut être comme 12 ?)
+    wallType: 4,
   },
   20: {
     name: "Manège",
@@ -179,6 +198,7 @@ export const MAPS = {
     source: "background-17.png",
     wall: "unbreakableWall-17.png",
     generatioWall: 14, //ne aps générer trop haut ni sur les tapis
+    wallType: 4,
   },
   21: {
     name: "Blocs",
@@ -186,6 +206,7 @@ export const MAPS = {
     source: "background-18.png",
     wall: "unbreakableWall-18.png",
     generatioWall: 1,
+    wallType: 1,
   },
   22: {
     name: "Blocs 2",
@@ -194,6 +215,7 @@ export const MAPS = {
     source: "background-19.png",
     wall: "unbreakableWall-19.png",
     generatioWall: 15, //ne pas générer sur les flèches
+    wallType: 1,
   },
   23: {
     name: "Zombie",
@@ -202,6 +224,7 @@ export const MAPS = {
     source: "background-18.png",
     wall: "unbreakableWall-18.png",
     generatioWall: 1,
+    wallType: 1,
   },
   24: {
     name: "Aléatoire",
@@ -210,6 +233,7 @@ export const MAPS = {
     source: "background-1.png",
     wall: "unbreakableWall-1.png",
     generatioWall: 1,
+    wallType: 1,
   },
 };
 
