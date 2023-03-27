@@ -286,7 +286,6 @@ input {
 /*tt les btn dans la div .param*/
 
 .btnParam {
-  z-index: 1;
   aspect-ratio: 1/1;
   background-color: #00000000;
   border: 0;
@@ -297,53 +296,23 @@ input {
 }
 
 .textParam {
-  z-index: 0;
-  overflow: hidden;
   display: flex;
   flex-direction: row;
   width: 150px;
   justify-content: space-between;
   align-items: center;
+  position: relative;
 }
 
 .map {
   display: flex;
   flex-direction: column;
   text-align: center;
+  position: relative;
 }
 
 img {
   image-rendering: pixelated;
-}
-
-.apparition-gauche {
-  animation: slide-in-left 0.6s cubic-bezier(0, 0, 0.2, 1);
-}
-
-.apparition-droite {
-  animation: slide-in-right 0.6s cubic-bezier(0, 0, 0.2, 1);
-}
-
-@keyframes slide-in-right {
-  0% {
-    transform: translateX(180px);
-    opacity: 0;
-  }
-  100% {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-@keyframes slide-in-left {
-  0% {
-    transform: translateX(-180px);
-    opacity: 0;
-  }
-  100% {
-    transform: translateX(0);
-    opacity: 1;
-  }
 }
 
 .team {
@@ -407,45 +376,80 @@ img {
   background-image: url(../img/backgroundTeam/TeamBack-8.png);
 }
 
-.param {
+.titleParam {
   position: relative;
 }
 
-.param .tooltiptext {
+.titleParam .tooltiptext {
   visibility: hidden;
-  width: 80%;
+  width: 200px;
+  background-color: #0d1821;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  z-index: 9999;
+  padding: 8px 0;
+  position: absolute;
+  top: 50%;
+  left: 110%;
+  transform: translate(10px, -50%);
+  filter: drop-shadow(0px 0px 0.3px #fed766) drop-shadow(0px 0px 0.3px #fed766)
+    drop-shadow(0px 0px 0.3px #fed766) drop-shadow(0px 0px 0.3px #fed766)
+    drop-shadow(0px 0px 0.3px #fed766) drop-shadow(0px 0px 0.3px #fed766);
+}
+
+.titleParam .tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 99%;
+  margin-top: -6px;
+  border-width: 6px;
+  border-style: solid;
+  transform: translateY(1px);
+  border-color: transparent #0d1821 transparent transparent;
+  /* clip-path: polygon(0% 100%, 100% 100%, 50% 0%); */
+}
+
+.titleParam:hover .tooltiptext {
+  visibility: visible;
+}
+
+.mapTxt {
+  margin-top: 10px;
+}
+
+.map .tooltiptext2 {
+  opacity: 0;
+  width: 200px;
   background-color: #0d1821;
   color: #fff;
   text-align: center;
   border-radius: 6px;
   padding: 8px 0;
   position: absolute;
-  z-index: 1;
-  top: 95%;
-  left: 50%;
-  transform: translateX(-50%);
-  translate: 0 10px;
+  z-index: 9999;
+  top: 100%;
+  right: 0%;
+  transform: translateY(8px);
   filter: drop-shadow(0px 0px 0.3px #fed766) drop-shadow(0px 0px 0.3px #fed766)
     drop-shadow(0px 0px 0.3px #fed766) drop-shadow(0px 0px 0.3px #fed766)
     drop-shadow(0px 0px 0.3px #fed766) drop-shadow(0px 0px 0.3px #fed766);
 }
 
-.param .tooltiptext::after {
+.map .tooltiptext2::after {
   content: "";
   position: absolute;
-  bottom: 97%;
-  left: 50%;
-  margin-left: -6px;
+  bottom: 99%;
+  left: 72%;
+  margin-top: -6px;
   border-width: 6px;
   border-style: solid;
+  transform: translateY(1px);
   border-color: transparent transparent #0d1821 transparent;
-  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  /* clip-path: polygon(0% 100%, 100% 100%, 50% 0%); */
 }
 
-.param:hover .tooltiptext {
-  visibility: visible;
-}
-
-.mapTxt {
-  margin-top: 10px;
+.map:hover .tooltiptext2 {
+  opacity: 1;
 }

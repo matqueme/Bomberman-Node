@@ -4,6 +4,7 @@ import path from "path";
 import { Server } from "socket.io";
 import { WALL } from "./const.js";
 import { MAP } from "./const.js";
+import { MAPS } from "./const.js";
 import { PLAYERSTARTPOSITIONS } from "./const.js";
 
 const app = express();
@@ -42,6 +43,7 @@ io.on("connection", (socket) => {
         roomData: {
           nameroom: param.room,
           maxPlayers: 8,
+          mapParameter: MAPS[0],
           gameStarted: false,
           nextBombId: 0,
           nextExplosionId: 0,
@@ -93,7 +95,13 @@ io.on("connection", (socket) => {
     for (let id in rooms[param.room].players) {
       io.to(socket.id).emit("addCharacter", rooms[param.room].players[id]);
     }
+
     io.to(socket.id).emit("addParam", rooms[param.room].roomData);
+
+    io.to(socket.id).emit(
+      "isAdmin",
+      rooms[param.room].players[socket.id].admin
+    );
 
     io.to(socket.id).emit("addWalls", rooms[param.room].walls);
 
@@ -160,7 +168,33 @@ io.on("connection", (socket) => {
     io.to(data.room).emit("addBomb", bomb);
   });
 
-  //START -------------------
+  //--------------------Paramètres--------------------
+
+  socket.on("changeMap", (param, roomName) => {
+    let user = rooms[roomName].players[socket.id];
+    if (user.admin) {
+      let newIndex =
+        MAPS.indexOf(rooms[roomName].roomData.mapParameter) + param;
+      if (newIndex < 0) {
+        rooms[roomName].mapParameter = MAPS[MAPS.length - 1];
+        newIndex = MAPS.length - 1;
+      } else if (newIndex >= MAPS.length) {
+        rooms[roomName].roomData.mapParameter = MAPS[0];
+        newIndex = 0;
+      } else {
+        rooms[roomName].roomData.mapParameter = MAPS[newIndex];
+      }
+      //send to everyone
+      io.to(roomName).emit(
+        "changeMap",
+        rooms[roomName].roomData.mapParameter,
+        newIndex
+      );
+      console.log(rooms[roomName].roomData.mapParameter);
+    }
+  });
+
+  //START
   socket.on("start", (room) => {
     //start game
     let user = rooms[room].players[socket.id];
@@ -188,6 +222,7 @@ io.on("connection", (socket) => {
           console.log(
             `Le joueur "${room.players[newAdmin].name}" est devenu admin de la room "${roomName}"`
           );
+          io.to(newAdmin).emit("isAdmin", true);
         }
 
         // Envoyer les informations de déconnexion au autres joueurs
@@ -241,7 +276,7 @@ const adminStartBtn = (isBtn, room) => {
   );
   // Envoyer les informations d'Admin
   if (rooms[room].players[index].admin) {
-    io.to(index).emit("admin", isBtn);
+    io.to(index).emit("adminBtn", isBtn);
   }
 };
 /*--------------------------Explosion------------------------------- */

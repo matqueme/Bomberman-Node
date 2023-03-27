@@ -6,6 +6,8 @@ class Player {
     /*ID*/
     this.id = param.id;
 
+    this.admin = param.admin;
+
     /*Vivant ou mort*/
     this.alive = param.alive;
 
