@@ -420,7 +420,7 @@ img {
 }
 
 .map .tooltiptext2 {
-  opacity: 0;
+  visibility: hidden;
   width: 200px;
   background-color: #0d1821;
   color: #fff;
@@ -451,5 +451,5 @@ img {
 }
 
 .map:hover .tooltiptext2 {
-  opacity: 1;
+  visibility: visible;
 }
