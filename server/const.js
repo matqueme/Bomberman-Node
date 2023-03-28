@@ -165,7 +165,7 @@ export const MAPS = [
   {
     name: "Mystère",
     tooltip:
-      "Dans ce niveau les objets sont remplacés par des points d'intérogation. Si vous n'avez pas de chance les choses risquent de mal tourner.",
+      "Dans ce niveau les objets sont remplacés par des points d'interrogation. Si vous n'avez pas de chance les choses risquent de mal tourner.",
     source: "background-1.png",
     wall: "unbreakableWall-1.png",
     generatioWall: 1,

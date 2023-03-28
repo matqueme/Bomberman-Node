@@ -47,7 +47,7 @@ export const HTMLADMIN = `
             <button class="btnParam" id="btnMapGauche">&#8249;</button>
             <div class="map">
               <img src="./img/map-icon/Map-1.png" alt="map" id="map" />
-              <div class="mapTxt">Normal</div>
+              <div id="mapTxt">Normal</div>
               <span class="tooltiptext2" id="tooltiptext2"
                 >Il s'agit de la carte de base.</span
               >
@@ -65,9 +65,7 @@ export const HTMLADMIN = `
           </div>
           <div class="textParam">
             <button class="btnParam" id="">&#8249;</button>
-            <div id="position">
               <div id="textPosition">3</div>
-            </div>
             <button class="btnParam" id="">&#8250;</button>
           </div>
         </div>
@@ -82,9 +80,7 @@ export const HTMLADMIN = `
           </div>
           <div class="textParam">
             <button class="btnParam" id="">&#8249;</button>
-            <div id="position">
               <div id="textPosition">2:00</div>
-            </div>
             <button class="btnParam" id="">&#8250;</button>
           </div>
         </div>
@@ -99,9 +95,7 @@ export const HTMLADMIN = `
           </div>
           <div class="textParam">
             <button class="btnParam" id="">&#8249;</button>
-            <div id="position">
               <div id="textPosition">Oui</div>
-            </div>
             <button class="btnParam" id="">&#8250;</button>
           </div>
         </div>
@@ -115,9 +109,7 @@ export const HTMLADMIN = `
           </div>
           <div class="textParam">
             <button class="btnParam" id="">&#8249;</button>
-            <div id="position">
               <div id="textPosition">Oui</div>
-            </div>
             <button class="btnParam" id="">&#8250;</button>
           </div>
         </div>
@@ -131,9 +123,7 @@ export const HTMLADMIN = `
           </div>
           <div class="textParam">
             <button class="btnParam" id="">&#8249;</button>
-            <div id="position">
               <div id="textPosition">Non</div>
-            </div>
             <button class="btnParam" id="">&#8250;</button>
           </div>
         </div>
@@ -258,6 +248,179 @@ export const HTMLADMIN = `
         <div id="start"></div>
 `;
 
+export const HTMLPLAYER = `
+<div class="title">Partie</div>
+        <div class="param">
+          <div class="titleParam">
+            Position :
+            <span class="tooltiptext"
+              >Déterminer la position au démarage</span
+            >
+          </div>
+          <div class="textParam2">
+            <div id="position">Fixe</div>
+          </div>
+        </div>
+
+        <div class="param">
+          <div class="titleParam">
+            Map :
+            <span class="tooltiptext"
+              >Choisissez la map avec des fonctionalitées unique</span
+            >
+          </div>
+          <div class="textParam2">
+            <div class="map">
+              <img src="./img/map-icon/Map-1.png" alt="map" id="map" />
+              <div id="mapTxt">Normal</div>
+              <span class="tooltiptext2" id="tooltiptext2"
+                >Il s'agit de la carte de base.</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="param">
+          <div class="titleParam">
+            Round :
+            <span class="tooltiptext"
+              >Détermine le nombre de victoire pour gagner</span
+            >
+          </div>
+          <div class="textParam2">
+              <div id="textPosition">3</div>
+          </div>
+        </div>
+
+        <div class="param">
+          <div class="titleParam">
+            Temps :
+            <span class="tooltiptext"
+              >Détermine la fin de la partie (Si la muraille est désactivé
+              il peut y avoir match nul)</span
+            >
+          </div>
+          <div class="textParam2">
+              <div id="textPosition">2:00</div>
+          </div>
+        </div>
+
+        <div class="param">
+          <div class="titleParam">
+            Muraille :
+            <span class="tooltiptext"
+              >Des blocs tomberons d'en haut jusqu'à la mort des
+              joueurs</span
+            >
+          </div>
+          <div class="textParam2">
+              <div id="textPosition">Oui</div>
+          </div>
+        </div>
+
+        <div class="param">
+          <div class="titleParam">
+            Crâne :
+            <span class="tooltiptext"
+              >Détermine si le malus "Crâne" est activé</span
+            >
+          </div>
+          <div class="textParam2">
+              <div id="textPosition">Oui</div>
+          </div>
+        </div>
+
+        <div class="param">
+          <div class="titleParam">
+            Jackpot :
+            <span class="tooltiptext"
+              >Determine si le jackpot est activé</span
+            >
+          </div>
+          <div class="textParam2">
+              <div id="textPosition">Non</div>
+          </div>
+        </div>
+
+        Team :
+        <div class="team">
+          <div
+            class="white"
+            id="div1"
+          >
+            <img
+              src="img/head/1.png"
+              alt="white"
+            />
+          </div>
+          <div
+            class="black"
+            id="div2"
+          >
+            <img
+              src="img/head/2.png"
+              alt="black"
+            />
+          </div>
+
+          <div
+            class="red"
+            id="div3"
+          >
+            <img
+              src="img/head/3.png"
+              alt="red"
+            />
+          </div>
+          <div
+            class="blue"
+            id="div4"
+          >
+            <img
+              src="img/head/4.png"
+              alt="blue"
+            />
+          </div>
+          <div
+            class="green"
+            id="div5"
+          >
+            <img
+              src="img/head/5.png"
+              alt="green"
+            />
+          </div>
+          <div
+            class="yellow"
+            id="div6"
+          >
+            <img
+              src="img/head/6.png"
+              alt="yellow"
+            />
+          </div>
+          <div
+            class="pink"
+            id="div7"
+          >
+            <img
+              src="img/head/7.png"
+              alt="pink"
+            />
+          </div>
+          <div
+            class="cyan"
+            id="div8"
+          >
+            <img
+              src="img/head/8.png"
+              alt="cyan"
+            />
+          </div>
+        </div>
+
+        <div id="start"></div>
+`;
 //tapis roulan
 // export const TAPIS = [
 //   {

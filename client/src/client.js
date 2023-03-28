@@ -1,6 +1,7 @@
 import Player from "./player.js";
 import { MAP } from "./const.js";
 import { HTMLADMIN } from "./const.js";
+import { HTMLPLAYER } from "./const.js";
 //import { TAPIS } from "./const.js";
 
 /*-----------------------CONSTANTE-----------------------*/
@@ -123,12 +124,7 @@ const generateParametersAdmin = (admin) => {
       sock.emit("changeMap", 1, roomData.nameroom);
     });
   } else {
-    console.log(roomData);
-    container.innerHTML = `
-      <div class="non-admin-structure">
-        <img src="img/map-icon/Map-1.png" alt="map" id="map" />
-      </div>
-    `;
+    container.innerHTML = HTMLPLAYER;
   }
 };
 
@@ -177,7 +173,6 @@ const removeCharacter = (id) => {
 };
 
 const changeMap = (param, index) => {
-  console.log(param);
   map = param;
   document.getElementById(
     "canvas"
@@ -186,6 +181,7 @@ const changeMap = (param, index) => {
   document.getElementById("map").src = `img/map-icon/Map-${index + 1}.png`;
   document.getElementById("map").alt = `Map-${index + 1}`;
   document.getElementById("tooltiptext2").innerHTML = param.tooltip;
+  document.getElementById("mapTxt").innerHTML = param.name;
 };
 
 const playerDied = (id) => {
@@ -196,8 +192,17 @@ const playerDied = (id) => {
 };
 
 // Ajoute les paramètres de la partie
-const addParam = (param) => {
+const addParam = (param, indexMap) => {
   roomData = param;
+  document.getElementById(
+    "canvas"
+  ).style.backgroundImage = `url(img/map/${param.mapParameter.source})`;
+  wallUnbreakableImage.src = `img/map/${param.mapParameter.wall}`;
+  document.getElementById("tooltiptext2").innerHTML =
+    param.mapParameter.tooltip;
+  document.getElementById("map").src = `img/map-icon/Map-${indexMap + 1}.png`;
+  document.getElementById("map").alt = `Map-${indexMap + 1}`;
+  document.getElementById("mapTxt").innerHTML = param.mapParameter.name;
 };
 
 const addWalls = (param) => {

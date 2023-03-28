@@ -96,11 +96,15 @@ io.on("connection", (socket) => {
       io.to(socket.id).emit("addCharacter", rooms[param.room].players[id]);
     }
 
-    io.to(socket.id).emit("addParam", rooms[param.room].roomData);
-
     io.to(socket.id).emit(
       "isAdmin",
       rooms[param.room].players[socket.id].admin
+    );
+
+    io.to(socket.id).emit(
+      "addParam",
+      rooms[param.room].roomData,
+      MAPS.indexOf(rooms[param.room].roomData.mapParameter)
     );
 
     io.to(socket.id).emit("addWalls", rooms[param.room].walls);
@@ -176,7 +180,7 @@ io.on("connection", (socket) => {
       let newIndex =
         MAPS.indexOf(rooms[roomName].roomData.mapParameter) + param;
       if (newIndex < 0) {
-        rooms[roomName].mapParameter = MAPS[MAPS.length - 1];
+        rooms[roomName].roomData.mapParameter = MAPS[MAPS.length - 1];
         newIndex = MAPS.length - 1;
       } else if (newIndex >= MAPS.length) {
         rooms[roomName].roomData.mapParameter = MAPS[0];
@@ -190,7 +194,6 @@ io.on("connection", (socket) => {
         rooms[roomName].roomData.mapParameter,
         newIndex
       );
-      console.log(rooms[roomName].roomData.mapParameter);
     }
   });
 
