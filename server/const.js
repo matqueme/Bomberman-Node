@@ -358,6 +358,7 @@ export const WALL = {
     { x: 8, y: 32 + 176, width: 16, height: 16, destructible: false },
     { x: 8 + 224, y: 32 + 144, width: 16, height: 16, destructible: false },
     { x: 8 + 224, y: 32 + 176, width: 16, height: 16, destructible: false },
+    { x: 8 + 32, y: 32 + 32, width: 16, height: 16, destructible: true },
   ],
 };
 

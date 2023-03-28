@@ -45,7 +45,7 @@ io.on("connection", (socket) => {
           nextItemId: 0,
         },
       };
-      generateWalls(param.room);
+      //generateWalls(param.room);
     }
 
     //Si il y a plus de 8 joueurs dans la room, on quitte
@@ -724,17 +724,18 @@ function explosionDangerouse(bomb, room, date) {
   //verifier qu'il y a une explosion a une position bomb.x, bomb.y
   //si oui, on ne fait pas exploser la bombe
   if (isExplosion(bomb.x + 32, bomb.y + 32, room)) {
-    explodeUp(bomb.x + 32, bomb.y + 32, bomb, room, date, 2);
-    explodeLeft(bomb.x + 32, bomb.y + 32, bomb, room, date, 2);
+    explodeUp(bomb.x + 32, bomb.y + 32, bomb, room, date, 4);
+    explodeLeft(bomb.x + 32, bomb.y + 32, bomb, room, date, 4);
   } else if (isExplosion(bomb.x - 32, bomb.y - 32, room)) {
-    explodeDown(bomb.x - 32, bomb.y - 32, bomb, room, date, 2);
-    explodeRight(bomb.x - 32, bomb.y - 32, bomb, room, date, 2);
+    console.log("explosion vers le haut et la gauche");
+    explodeDown(bomb.x - 32, bomb.y - 32, bomb, room, date, 4);
+    explodeRight(bomb.x - 32, bomb.y - 32, bomb, room, date, 4);
   } else if (isExplosion(bomb.x + 32, bomb.y - 32, room)) {
-    explodeDown(bomb.x + 32, bomb.y - 32, bomb, room, date, 2);
-    explodeLeft(bomb.x + 32, bomb.y - 32, bomb, room, date, 2);
+    explodeDown(bomb.x + 32, bomb.y - 32, bomb, room, date, 4);
+    explodeLeft(bomb.x + 32, bomb.y - 32, bomb, room, date, 4);
   } else if (isExplosion(bomb.x - 32, bomb.y + 32, room)) {
-    explodeUp(bomb.x - 32, bomb.y + 32, bomb, room, date, 2);
-    explodeRight(bomb.x - 32, bomb.y + 32, bomb, room, date, 2);
+    explodeUp(bomb.x - 32, bomb.y + 32, bomb, room, date, 4);
+    explodeRight(bomb.x - 32, bomb.y + 32, bomb, room, date, 4);
   }
 }
 
