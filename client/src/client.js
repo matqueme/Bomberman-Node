@@ -33,6 +33,9 @@ bombSprite.src = "img/sprite-bombe.png";
 const itemSprite = new Image();
 itemSprite.src = "img/sprite-item.png";
 
+const wallSprite = new Image();
+wallSprite.src = "img/walls.png";
+
 const keys = {};
 
 let characters = {};
@@ -173,11 +176,11 @@ const removeCharacter = (id) => {
 };
 
 const changeMap = (param, index) => {
-  map = param;
+  roomData.mapParameter = param;
   document.getElementById(
     "canvas"
-  ).style.backgroundImage = `url(img/map/${map.source})`;
-  wallUnbreakableImage.src = `img/map/${map.wall}`;
+  ).style.backgroundImage = `url(img/map/${roomData.mapParameter.source})`;
+  wallUnbreakableImage.src = `img/map/${roomData.mapParameter.wall}`;
   document.getElementById("map").src = `img/map-icon/Map-${index + 1}.png`;
   document.getElementById("map").alt = `Map-${index + 1}`;
   document.getElementById("tooltiptext2").innerHTML = param.tooltip;
@@ -214,6 +217,7 @@ const addBomb = (param) => {
   const newBomb = {
     x: param.x,
     y: param.y,
+    bombType: param.bombType,
   };
   bombs[param.id] = newBomb;
 };
@@ -336,13 +340,12 @@ const drawCharacters = () => {
 function drawWalls() {
   for (let i = 0; i < walls.length; i++) {
     // afficher avec des sprites plutot que des rectangles de bombSprite
-
     let wall = walls[i];
     wall.destructible &&
       ctx.drawImage(
-        bombSprite,
-        16 * 23,
+        wallSprite,
         0,
+        20 * roomData.mapParameter.wallType - 20,
         16,
         20,
         wall.x,
@@ -367,13 +370,19 @@ function drawExplosions() {
 
 function drawBombs() {
   for (const id in bombs) {
-    ctx.fillStyle = "blue";
+    //display image bomb de items image
     const bomb = bombs[id];
-    ctx.fillRect(bomb.x, bomb.y, 16, 16);
-    //mettre en gras
-    ctx.font = "bold 8px Arial";
-    ctx.fillStyle = "black";
-    ctx.fillText("B", bomb.x + 5, bomb.y + 10);
+    ctx.drawImage(
+      bombSprite,
+      0,
+      16 * bomb.bombType - 16,
+      16,
+      16,
+      bomb.x,
+      bomb.y - 4,
+      16,
+      16
+    );
   }
 }
 

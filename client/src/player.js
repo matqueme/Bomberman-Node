@@ -35,11 +35,6 @@ class Player {
 
     /*LAST MOVE*/
     this.lastMove = 0;
-
-    /*BOMB PARAMETER*/
-    this.bombtype = param.bombtype;
-    this.bombpower = param.bombpower;
-    this.bombnumber = param.bombnumber;
   }
 
   /*RETURN*/
