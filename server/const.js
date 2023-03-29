@@ -160,7 +160,7 @@ export const MAPS = [
     source: "background-2.png",
     wall: "unbreakableWall-2.png",
     generatioWall: 1,
-    wallType: 2,
+    wallType: 3,
   },
   {
     name: "Mystère",
@@ -178,7 +178,7 @@ export const MAPS = [
     source: "background-3.png",
     wall: "unbreakableWall-3.png",
     generatioWall: 1,
-    wallType: 3,
+    wallType: 2,
   },
   {
     name: "Tunnels",
@@ -195,7 +195,7 @@ export const MAPS = [
       "Ce niveau ne dispose que d'un tunnel reliant la partie du haut de la partie du bas. Vous avancez ou vous attendez ?",
     source: "background-5.png",
     wall: "unbreakableWall-5.png",
-    generatioWall: 1,
+    generatioWall: 16,
     wallType: 1,
   },
   {
@@ -204,7 +204,7 @@ export const MAPS = [
       "Ce niveau dispose de trois tunnels reliant la partie du haut de la partie du bas. Le coup de pied peut être bien pratique.",
     source: "background-6.png",
     wall: "unbreakableWall-6.png",
-    generatioWall: 1,
+    generatioWall: 17,
     wallType: 1,
   },
   {
@@ -286,7 +286,7 @@ export const MAPS = [
     source: "background-15.png",
     wall: "unbreakableWall-15.png",
     generatioWall: 11, //pas wall indestructible et génération normal
-    wallType: 2,
+    wallType: 3,
   },
   {
     name: "Couronne",
@@ -358,9 +358,11 @@ export const WALL = {
     { x: 8, y: 32 + 176, width: 16, height: 16, destructible: false },
     { x: 8 + 224, y: 32 + 144, width: 16, height: 16, destructible: false },
     { x: 8 + 224, y: 32 + 176, width: 16, height: 16, destructible: false },
-    { x: 8 + 32, y: 32 + 32, width: 16, height: 16, destructible: true },
+    //generate wall a y 160, y 176 et x 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224
   ],
 };
+const xTunnel = [32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224];
+const yTunnel = [160, 176];
 
 const xValues = [16, 48, 80, 112, 144, 176, 208];
 const yValues = [16, 48, 80, 112, 144, 160, 176, 208, 240, 272, 304];
