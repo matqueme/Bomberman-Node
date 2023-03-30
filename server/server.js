@@ -1,10 +1,18 @@
 import http from "http";
 import express from "express";
 import { Server } from "socket.io";
-import { WALL } from "./const.js";
-import { MAP } from "./const.js";
-import { MAPS } from "./const.js";
-import { PLAYERSTARTPOSITIONS } from "./const.js";
+
+//calculer le temps d'import
+
+import {
+  MAP,
+  MAPS,
+  PLAYERSTARTPOSITIONS,
+  CENTEROBJECTS,
+  CARPET,
+  TRAPDOOR,
+  ARROWGROUND1,
+} from "./const.js";
 
 const app = express();
 
@@ -32,7 +40,7 @@ io.on("connection", (socket) => {
         players: {},
         bombs: {},
         explosions: {},
-        walls: [WALL.walls].flat(),
+        walls: [],
         wallsDestroy: [],
         items: {},
         roomData: {
@@ -231,6 +239,16 @@ io.on("connection", (socket) => {
       rooms[roomName].walls = generateWallsIndestructible(
         rooms[roomName].roomData.mapParameter.generatioWall
       );
+      // rooms[roomName].walls = generateWallsDestructible(
+      //   rooms[roomName].roomData.mapParameter.generatioWall
+      // );
+      rooms[roomName].walls.push(
+        generateWallsDestructible(
+          rooms[roomName].roomData.mapParameter.generatioWall,
+          roomName
+        )
+      );
+      rooms[roomName].walls = rooms[roomName].walls.flat();
 
       io.to(roomName).emit("addWalls", rooms[roomName].walls);
 
@@ -346,6 +364,15 @@ function createExplosion(x, y, type, room, date) {
   room.roomData.nextExplosionId++;
 }
 
+function collideWall2(x, y, wall) {
+  for (let id = 0; id < wall.length; id++) {
+    if (x == wall[id].x && y == wall[id].y) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function collideWall(x, y, room) {
   for (let id = 0; id < room.walls.length; id++) {
     const wall = room.walls[id];
@@ -426,15 +453,59 @@ function isPlayerStart(x, y) {
   return false;
 }
 
-// Generate walls
-function generateWalls(room) {
-  let wallTotal = 15 * 9 * 2;
-  wallTotal = wallTotal - 7 * 8; //indestructible wall
-  const randomRatioWall = getRandomArbitrary(0.55, 0.8);
-  const wallDestructible = Math.floor(wallTotal * randomRatioWall);
+function isCenterObjects(x, y) {
+  for (let centerObject of CENTEROBJECTS) {
+    if (x == centerObject.x && y == centerObject.y) {
+      return true;
+    }
+  }
+  return false;
+}
 
-  //81 = indestructible wall
-  while (rooms[room].walls.length - 81 < wallDestructible) {
+function isCarpet(x, y) {
+  for (let carpet of CARPET) {
+    if (x == carpet.x && y == carpet.y) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isTrapdoor(x, y) {
+  for (let trapdoor of TRAPDOOR) {
+    if (x == trapdoor.x && y == trapdoor.y) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isArrowInTheGround(x, y) {
+  for (let arrow of ARROWGROUND1) {
+    if (x == arrow.x && y == arrow.y) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// Generate walls
+function generateWallsDestructible(generatewall, room) {
+  console.log(generatewall);
+  let walls = [];
+  let wallTotal = 214;
+  if (generatewall === 2) {
+    wallTotal = wallTotal - CENTEROBJECTS.length;
+  } else if (generatewall === 3) {
+    wallTotal = wallTotal - CARPET.length;
+  } else if (generatewall === 4) {
+    wallTotal = wallTotal - TRAPDOOR.length;
+  } else if (generatewall === 5) {
+    wallTotal = wallTotal - ARROWGROUND1.length - CENTEROBJECTS.length;
+  }
+  const randomRatioWall = getRandomArbitrary(0.55, 0.75);
+  const wallDestructible = Math.floor(wallTotal * randomRatioWall);
+  while (walls.length < wallDestructible) {
     const x = random(0, 14) * 16 + MAP.startLeft;
     const y = random(0, 20) * 16 + MAP.startTop;
     const wall = {
@@ -449,16 +520,40 @@ function generateWalls(room) {
       y != 144 + MAP.startTop &&
       y != 160 + MAP.startTop &&
       y != 176 + MAP.startTop &&
-      !isPlayerStart(x, y)
+      !isPlayerStart(x, y) &&
+      !collideWall2(x, y, walls)
     ) {
-      rooms[room].walls.push(wall);
+      if (generatewall === 2 && !isCenterObjects(x, y)) {
+        walls.push(wall);
+      } else if (generatewall === 3 && !isCarpet(x, y)) {
+        walls.push(wall);
+      } else if (generatewall === 4 && !isTrapdoor(x, y)) {
+        walls.push(wall);
+      } else if (
+        generatewall === 5 &&
+        !isArrowInTheGround(x, y) &&
+        !isCenterObjects(x, y)
+      ) {
+        walls.push(wall);
+      } else if (
+        generatewall === 1 ||
+        generatewall === 16 ||
+        generatewall === 17
+      ) {
+        walls.push(wall);
+      } else {
+        // walls.push(wall);
+        //console.log(x, y);
+      }
+      //rooms[room].walls.push(wall);
     }
   }
-
-  rooms[room].walls.sort((a, b) => a.y - b.y);
+  walls.sort((a, b) => a.y - b.y);
+  return walls;
+  // rooms[room].walls.sort((a, b) => a.y - b.y);
 }
 
-function generateWallsIndestructible(generatioWall) {
+function generateWallsIndestructible(generationWall) {
   const walls = [
     { x: 8, y: 32 + 144, width: 16, height: 16, destructible: false },
     { x: 8, y: 32 + 176, width: 16, height: 16, destructible: false },
@@ -469,40 +564,40 @@ function generateWallsIndestructible(generatioWall) {
   const xValues = [16, 48, 80, 112, 144, 176, 208];
   const yValues = [16, 48, 80, 112, 208, 240, 272, 304];
 
-  if (generatioWall === 8 || generatioWall === 10) {
+  if (generationWall === 8 || generationWall === 10) {
     xValues.splice(0, yValues.length);
-  } else if (generatioWall === 9) {
+  } else if (generationWall === 9) {
     yValues.splice(4, yValues.length);
   }
 
   // Générer les variations
   for (let i = 0; i < xValues.length; i++) {
     for (let j = 0; j < yValues.length; j++) {
-      addWall(xValues[i], yValues[j], true);
+      addWall(xValues[i], yValues[j], false);
     }
   }
 
   let xTunnel = [16, 48, 80, 112, 144, 176, 208];
   let yTunnel = [144, 160, 176];
-  if (generatioWall === 16) {
+  if (generationWall === 16) {
     xTunnel.push(32, 64, 96, 128, 160, 192);
     xTunnel.splice(3, 1);
-  } else if (generatioWall === 17) {
+  } else if (generationWall === 17) {
     xTunnel.push(32, 64, 96, 128, 160, 192);
     xTunnel.splice(5, 1);
     xTunnel.splice(3, 1);
     xTunnel.splice(1, 1);
-  } else if (generatioWall === 3) {
+  } else if (generationWall === 3) {
     xTunnel.push(64, 96, 128, 160);
-  } else if (generatioWall === 4 || generatioWall === 9) {
+  } else if (generationWall === 4 || generationWall === 9) {
     xTunnel.push(32, 64, 96, 104, 128, 160, 192);
-  } else if (generatioWall === 15) {
+  } else if (generationWall === 15) {
     xTunnel.push(32, 192);
   }
 
   for (let i = 0; i < xTunnel.length; i++) {
     for (let j = 0; j < yTunnel.length; j++) {
-      addWall(xTunnel[i], yTunnel[j], true);
+      addWall(xTunnel[i], yTunnel[j], false);
     }
   }
 

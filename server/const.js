@@ -135,6 +135,56 @@ export const PLAYERSTARTPOSITIONS = {
   ],
 };
 
+export const CENTEROBJECTS = [
+  { x: MAP.startLeft + 32, y: MAP.startTop + 16 },
+  { x: MAP.startLeft + 32, y: MAP.startTop + 32 },
+  { x: MAP.startLeft + 32, y: MAP.startTop + 48 },
+  { x: MAP.startLeft + 16, y: MAP.startTop + 32 },
+  { x: MAP.startLeft + 48, y: MAP.startTop + 32 },
+
+  { x: MAP.endRight - 48, y: MAP.startTop + 16 },
+  { x: MAP.endRight - 48, y: MAP.startTop + 32 },
+  { x: MAP.endRight - 48, y: MAP.startTop + 48 },
+  { x: MAP.endRight - 32, y: MAP.startTop + 32 },
+  { x: MAP.endRight - 64, y: MAP.startTop + 32 },
+
+  { x: MAP.startLeft + 32, y: MAP.startTop + 80 },
+  { x: MAP.startLeft + 32, y: MAP.startTop + 96 },
+  { x: MAP.startLeft + 32, y: MAP.startTop + 112 },
+  { x: MAP.startLeft + 16, y: MAP.startTop + 96 },
+  { x: MAP.startLeft + 48, y: MAP.startTop + 96 },
+
+  { x: MAP.endRight - 48, y: MAP.startTop + 80 },
+  { x: MAP.endRight - 48, y: MAP.startTop + 96 },
+  { x: MAP.endRight - 48, y: MAP.startTop + 112 },
+  { x: MAP.endRight - 32, y: MAP.startTop + 96 },
+  { x: MAP.endRight - 64, y: MAP.startTop + 96 },
+
+  { x: MAP.startLeft + 32, y: MAP.endBottom - 32 },
+  { x: MAP.startLeft + 32, y: MAP.endBottom - 48 },
+  { x: MAP.startLeft + 32, y: MAP.endBottom - 64 },
+  { x: MAP.startLeft + 16, y: MAP.endBottom - 48 },
+  { x: MAP.startLeft + 48, y: MAP.endBottom - 48 },
+
+  { x: MAP.endRight - 48, y: MAP.endBottom - 32 },
+  { x: MAP.endRight - 48, y: MAP.endBottom - 48 },
+  { x: MAP.endRight - 48, y: MAP.endBottom - 64 },
+  { x: MAP.endRight - 32, y: MAP.endBottom - 48 },
+  { x: MAP.endRight - 64, y: MAP.endBottom - 48 },
+
+  { x: MAP.startLeft + 32, y: MAP.endBottom - 96 },
+  { x: MAP.startLeft + 32, y: MAP.endBottom - 112 },
+  { x: MAP.startLeft + 32, y: MAP.endBottom - 128 },
+  { x: MAP.startLeft + 16, y: MAP.endBottom - 112 },
+  { x: MAP.startLeft + 48, y: MAP.endBottom - 112 },
+
+  { x: MAP.endRight - 48, y: MAP.endBottom - 96 },
+  { x: MAP.endRight - 48, y: MAP.endBottom - 112 },
+  { x: MAP.endRight - 48, y: MAP.endBottom - 128 },
+  { x: MAP.endRight - 32, y: MAP.endBottom - 112 },
+  { x: MAP.endRight - 64, y: MAP.endBottom - 112 },
+];
+
 export const MAPS = [
   {
     name: "Normal",
@@ -352,30 +402,133 @@ export const MAPS = [
   },
 ];
 
-export const WALL = {
-  walls: [
-    { x: 8, y: 32 + 144, width: 16, height: 16, destructible: false },
-    { x: 8, y: 32 + 176, width: 16, height: 16, destructible: false },
-    { x: 8 + 224, y: 32 + 144, width: 16, height: 16, destructible: false },
-    { x: 8 + 224, y: 32 + 176, width: 16, height: 16, destructible: false },
-    //generate wall a y 160, y 176 et x 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224
-  ],
-};
-const xTunnel = [32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224];
-const yTunnel = [160, 176];
+export const CARPET = [
+  {
+    x: 0,
+    y: 0,
+  },
+];
 
-const xValues = [16, 48, 80, 112, 144, 176, 208];
-const yValues = [16, 48, 80, 112, 144, 160, 176, 208, 240, 272, 304];
-
-//faire un quadrillage de 7x4
-for (let i = 0; i < xValues.length; i++) {
-  for (let j = 0; j < yValues.length; j++) {
-    WALL.walls.push({
-      x: 8 + xValues[i],
-      y: 32 + yValues[j],
-      width: 16,
-      height: 16,
-      destructible: false,
-    });
-  }
+for (let i = 0; i < 16; i++) {
+  CARPET.push({
+    x: MAP.startLeft + 32,
+    y: MAP.startTop + 48 + i * 16,
+    type: "up",
+  });
 }
+
+for (let i = 0; i < 16; i++) {
+  CARPET.push({
+    x: MAP.endRight - 48,
+    y: MAP.startTop + 32 + i * 16,
+    type: "down",
+  });
+}
+
+for (let i = 0; i < 10; i++) {
+  CARPET.push({
+    x: MAP.startLeft + 32 + i * 16,
+    y: MAP.startTop + 32,
+    type: "right",
+  });
+}
+
+for (let i = 0; i < 10; i++) {
+  CARPET.push({
+    x: MAP.startLeft + 48 + i * 16,
+    y: MAP.endBottom - 48,
+    type: "left",
+  });
+}
+
+for (let i = 0; i < 6; i++) {
+  CARPET.push({
+    x: MAP.startLeft + 64 + i * 16,
+    y: MAP.startTop + 64,
+    type: "right",
+  });
+}
+
+for (let i = 0; i < 6; i++) {
+  CARPET.push({
+    x: MAP.startLeft + 80 + i * 16,
+    y: MAP.startTop + 128,
+    type: "left",
+  });
+}
+
+for (let i = 0; i < 4; i++) {
+  CARPET.push({
+    x: MAP.startLeft + 64,
+    y: MAP.startTop + 80 + i * 16,
+    type: "up",
+  });
+}
+
+for (let i = 0; i < 4; i++) {
+  CARPET.push({
+    x: MAP.endRight - 80,
+    y: MAP.startTop + 64 + i * 16,
+    type: "down",
+  });
+}
+
+//
+for (let i = 0; i < 6; i++) {
+  CARPET.push({
+    x: MAP.startLeft + 64 + i * 16,
+    y: MAP.startTop + 64 + 128,
+    type: "right",
+  });
+}
+
+for (let i = 0; i < 6; i++) {
+  CARPET.push({
+    x: MAP.startLeft + 80 + i * 16,
+    y: MAP.startTop + 128 + 128,
+    type: "left",
+  });
+}
+
+for (let i = 0; i < 4; i++) {
+  CARPET.push({
+    x: MAP.startLeft + 64,
+    y: MAP.startTop + 80 + 128 + i * 16,
+    type: "up",
+  });
+}
+
+for (let i = 0; i < 4; i++) {
+  CARPET.push({
+    x: MAP.endRight - 80,
+    y: MAP.startTop + 64 + 128 + i * 16,
+    type: "down",
+  });
+}
+
+export const TRAPDOOR = [
+  { x: MAP.startLeft + 32, y: MAP.startTop + 32 },
+  { x: MAP.endRight - 48, y: MAP.startTop + 32 },
+  { x: MAP.startLeft + 32, y: MAP.startTop + 96 },
+  { x: MAP.endRight - 48, y: MAP.startTop + 96 },
+  { x: MAP.startLeft + 32, y: MAP.endBottom - 48 },
+  { x: MAP.endRight - 48, y: MAP.endBottom - 48 },
+  { x: MAP.startLeft + 32, y: MAP.endBottom - 112 },
+  { x: MAP.endRight - 48, y: MAP.endBottom - 112 },
+];
+
+export const ARROWGROUND1 = [
+  { x: MAP.startLeft + 32, y: MAP.startTop, type: "down" },
+  { x: MAP.startLeft + 96, y: MAP.startTop + 32, type: "left" },
+  { x: MAP.startLeft + 144, y: MAP.startTop + 32, type: "right" },
+  { x: MAP.startLeft + 64, y: MAP.startTop + 64, type: "right" },
+  { x: MAP.startLeft + 160, y: MAP.startTop + 64, type: "down" },
+  { x: MAP.startLeft + 64, y: MAP.startTop + 96, type: "down" },
+  { x: MAP.startLeft + 128, y: MAP.startTop + 96, type: "left" },
+  { x: MAP.endRight - 16, y: MAP.startTop + 96, type: "left" },
+  { x: MAP.startLeft + 96, y: MAP.startTop + 192, type: "up" },
+  { x: MAP.endRight - 16, y: MAP.startTop + 192, type: "left" },
+  { x: MAP.startLeft + 32, y: MAP.startTop + 256, type: "up" },
+  { x: MAP.startLeft + 64, y: MAP.startTop + 256, type: "right" },
+  { x: MAP.endRight - 48, y: MAP.startTop + 256, type: "up" },
+];

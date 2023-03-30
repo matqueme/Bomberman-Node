@@ -415,7 +415,7 @@ function drawGame() {
   drawExplosions();
   drawCharacters();
   drawWalls();
-  ctx.drawImage(wallUnbreakableImage, 0, 0, 256, 384);
+  //ctx.drawImage(wallUnbreakableImage, 0, 0, 256, 384);
 }
 
 /*--------------------------MOUVEMENT DU PERSONNAGE--------------------------- */
