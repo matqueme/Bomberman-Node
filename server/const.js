@@ -7,183 +7,9 @@ export const MAP = {
   startLeft: 8,
   endBottom: 368,
   endRight: 248,
-
   widthMap: 256, //taille de la map
   heightMap: 384, //taille de la map
 };
-
-//player constant values
-export const PLAYER = {
-  width: 20, // taille image
-  height: 30, //taille image
-  widthPlayer: 16, //taille du joueur
-  heightPlayer: 16, //taille du joueur
-};
-
-export const PLAYERSTARTPOSITIONS = {
-  player1: [
-    {
-      x: MAP.startLeft,
-      y: MAP.startTop,
-    },
-    {
-      x: MAP.startLeft + 16,
-      y: MAP.startTop,
-    },
-    {
-      x: MAP.startLeft,
-      y: MAP.startTop + 16,
-    },
-  ],
-  player2: [
-    {
-      x: MAP.endRight - 16,
-      y: MAP.startTop,
-    },
-    {
-      x: MAP.endRight - 32,
-      y: MAP.startTop,
-    },
-    {
-      x: MAP.endRight - 16,
-      y: MAP.startTop + 16,
-    },
-  ],
-  player3: [
-    {
-      x: MAP.startLeft,
-      y: MAP.startTop + 8 * 16,
-    },
-    {
-      x: MAP.startLeft,
-      y: MAP.startTop + 7 * 16,
-    },
-    {
-      x: MAP.startLeft + 16,
-      y: MAP.startTop + 8 * 16,
-    },
-  ],
-  player4: [
-    {
-      x: MAP.endRight - 16,
-      y: MAP.startTop + 8 * 16,
-    },
-    {
-      x: MAP.endRight - 16,
-      y: MAP.startTop + 7 * 16,
-    },
-    {
-      x: MAP.endRight - 32,
-      y: MAP.startTop + 8 * 16,
-    },
-  ],
-  player5: [
-    {
-      x: MAP.startLeft,
-      y: MAP.endBottom - 16 - 8 * 16,
-    },
-    {
-      x: MAP.startLeft,
-      y: MAP.endBottom - 16 - 7 * 16,
-    },
-    {
-      x: MAP.startLeft + 16,
-      y: MAP.endBottom - 16 - 8 * 16,
-    },
-  ],
-  player6: [
-    {
-      x: MAP.endRight - 16,
-      y: MAP.endBottom - 16 - 8 * 16,
-    },
-    {
-      x: MAP.endRight - 16,
-      y: MAP.endBottom - 16 - 7 * 16,
-    },
-    {
-      x: MAP.endRight - 32,
-      y: MAP.endBottom - 16 - 8 * 16,
-    },
-  ],
-  player7: [
-    {
-      x: MAP.startLeft,
-      y: MAP.endBottom - 16,
-    },
-    {
-      x: MAP.startLeft + 16,
-      y: MAP.endBottom - 16,
-    },
-    {
-      x: MAP.startLeft,
-      y: MAP.endBottom - 32,
-    },
-  ],
-  player8: [
-    {
-      x: MAP.endRight - 16,
-      y: MAP.endBottom - 16,
-    },
-    {
-      x: MAP.endRight - 32,
-      y: MAP.endBottom - 16,
-    },
-    {
-      x: MAP.endRight - 16,
-      y: MAP.endBottom - 32,
-    },
-  ],
-};
-
-export const CENTEROBJECTS = [
-  { x: MAP.startLeft + 32, y: MAP.startTop + 16 },
-  { x: MAP.startLeft + 32, y: MAP.startTop + 32 },
-  { x: MAP.startLeft + 32, y: MAP.startTop + 48 },
-  { x: MAP.startLeft + 16, y: MAP.startTop + 32 },
-  { x: MAP.startLeft + 48, y: MAP.startTop + 32 },
-
-  { x: MAP.endRight - 48, y: MAP.startTop + 16 },
-  { x: MAP.endRight - 48, y: MAP.startTop + 32 },
-  { x: MAP.endRight - 48, y: MAP.startTop + 48 },
-  { x: MAP.endRight - 32, y: MAP.startTop + 32 },
-  { x: MAP.endRight - 64, y: MAP.startTop + 32 },
-
-  { x: MAP.startLeft + 32, y: MAP.startTop + 80 },
-  { x: MAP.startLeft + 32, y: MAP.startTop + 96 },
-  { x: MAP.startLeft + 32, y: MAP.startTop + 112 },
-  { x: MAP.startLeft + 16, y: MAP.startTop + 96 },
-  { x: MAP.startLeft + 48, y: MAP.startTop + 96 },
-
-  { x: MAP.endRight - 48, y: MAP.startTop + 80 },
-  { x: MAP.endRight - 48, y: MAP.startTop + 96 },
-  { x: MAP.endRight - 48, y: MAP.startTop + 112 },
-  { x: MAP.endRight - 32, y: MAP.startTop + 96 },
-  { x: MAP.endRight - 64, y: MAP.startTop + 96 },
-
-  { x: MAP.startLeft + 32, y: MAP.endBottom - 32 },
-  { x: MAP.startLeft + 32, y: MAP.endBottom - 48 },
-  { x: MAP.startLeft + 32, y: MAP.endBottom - 64 },
-  { x: MAP.startLeft + 16, y: MAP.endBottom - 48 },
-  { x: MAP.startLeft + 48, y: MAP.endBottom - 48 },
-
-  { x: MAP.endRight - 48, y: MAP.endBottom - 32 },
-  { x: MAP.endRight - 48, y: MAP.endBottom - 48 },
-  { x: MAP.endRight - 48, y: MAP.endBottom - 64 },
-  { x: MAP.endRight - 32, y: MAP.endBottom - 48 },
-  { x: MAP.endRight - 64, y: MAP.endBottom - 48 },
-
-  { x: MAP.startLeft + 32, y: MAP.endBottom - 96 },
-  { x: MAP.startLeft + 32, y: MAP.endBottom - 112 },
-  { x: MAP.startLeft + 32, y: MAP.endBottom - 128 },
-  { x: MAP.startLeft + 16, y: MAP.endBottom - 112 },
-  { x: MAP.startLeft + 48, y: MAP.endBottom - 112 },
-
-  { x: MAP.endRight - 48, y: MAP.endBottom - 96 },
-  { x: MAP.endRight - 48, y: MAP.endBottom - 112 },
-  { x: MAP.endRight - 48, y: MAP.endBottom - 128 },
-  { x: MAP.endRight - 32, y: MAP.endBottom - 112 },
-  { x: MAP.endRight - 64, y: MAP.endBottom - 112 },
-];
 
 export const MAPS = [
   {
@@ -402,6 +228,255 @@ export const MAPS = [
   },
 ];
 
+export const ROOMDEFAULT = {
+  players: {},
+  bombs: {},
+  explosions: {},
+  walls: [],
+  wallsDestroy: [],
+  items: {},
+  roomData: {
+    roomName: "",
+    maxPlayers: 8,
+    mapParameter: MAPS[0],
+    gameStarted: false,
+    nextBombId: 0,
+    nextExplosionId: 0,
+    nextItemId: 0,
+  },
+};
+
+//player constant values
+export const PLAYER = {
+  width: 20, // taille image
+  height: 30, //taille image
+  widthPlayer: 16, //taille du joueur
+  heightPlayer: 16, //taille du joueur
+};
+
+export const PLAYERSTARTPOSITIONS = {
+  player1: [
+    {
+      x: MAP.startLeft,
+      y: MAP.startTop,
+    },
+    {
+      x: MAP.startLeft + 16,
+      y: MAP.startTop,
+    },
+    {
+      x: MAP.startLeft,
+      y: MAP.startTop + 16,
+    },
+  ],
+  player2: [
+    {
+      x: MAP.endRight - 16,
+      y: MAP.startTop,
+    },
+    {
+      x: MAP.endRight - 32,
+      y: MAP.startTop,
+    },
+    {
+      x: MAP.endRight - 16,
+      y: MAP.startTop + 16,
+    },
+  ],
+  player3: [
+    {
+      x: MAP.startLeft,
+      y: MAP.startTop + 8 * 16,
+    },
+    {
+      x: MAP.startLeft,
+      y: MAP.startTop + 7 * 16,
+    },
+    {
+      x: MAP.startLeft + 16,
+      y: MAP.startTop + 8 * 16,
+    },
+  ],
+  player4: [
+    {
+      x: MAP.endRight - 16,
+      y: MAP.startTop + 8 * 16,
+    },
+    {
+      x: MAP.endRight - 16,
+      y: MAP.startTop + 7 * 16,
+    },
+    {
+      x: MAP.endRight - 32,
+      y: MAP.startTop + 8 * 16,
+    },
+  ],
+  player5: [
+    {
+      x: MAP.startLeft,
+      y: MAP.endBottom - 16 - 8 * 16,
+    },
+    {
+      x: MAP.startLeft,
+      y: MAP.endBottom - 16 - 7 * 16,
+    },
+    {
+      x: MAP.startLeft + 16,
+      y: MAP.endBottom - 16 - 8 * 16,
+    },
+  ],
+  player6: [
+    {
+      x: MAP.endRight - 16,
+      y: MAP.endBottom - 16 - 8 * 16,
+    },
+    {
+      x: MAP.endRight - 16,
+      y: MAP.endBottom - 16 - 7 * 16,
+    },
+    {
+      x: MAP.endRight - 32,
+      y: MAP.endBottom - 16 - 8 * 16,
+    },
+  ],
+  player7: [
+    {
+      x: MAP.startLeft,
+      y: MAP.endBottom - 16,
+    },
+    {
+      x: MAP.startLeft + 16,
+      y: MAP.endBottom - 16,
+    },
+    {
+      x: MAP.startLeft,
+      y: MAP.endBottom - 32,
+    },
+  ],
+  player8: [
+    {
+      x: MAP.endRight - 16,
+      y: MAP.endBottom - 16,
+    },
+    {
+      x: MAP.endRight - 32,
+      y: MAP.endBottom - 16,
+    },
+    {
+      x: MAP.endRight - 16,
+      y: MAP.endBottom - 32,
+    },
+  ],
+};
+
+export const PLAYERSTARTPOSITIONSMINI = {
+  player5: [
+    {
+      x: MAP.startLeft + 4 * 16,
+      y: MAP.startTop + 2 * 16,
+    },
+    {
+      x: MAP.startLeft + 3 * 16,
+      y: MAP.startTop + 2 * 16,
+    },
+    {
+      x: MAP.startLeft + 4 * 16,
+      y: MAP.startTop + 16,
+    },
+  ],
+  player6: [
+    {
+      x: MAP.startLeft + 10 * 16,
+      y: MAP.startTop + 2 * 16,
+    },
+    {
+      x: MAP.startLeft + 11 * 16,
+      y: MAP.startTop + 2 * 16,
+    },
+    {
+      x: MAP.startLeft + 10 * 16,
+      y: MAP.startTop + 16,
+    },
+  ],
+  player7: [
+    {
+      x: MAP.startLeft + 4 * 16,
+      y: MAP.startTop + 6 * 16,
+    },
+    {
+      x: MAP.startLeft + 3 * 16,
+      y: MAP.startTop + 6 * 16,
+    },
+    {
+      x: MAP.startLeft + 4 * 16,
+      y: MAP.startTop + 5 * 16,
+    },
+  ],
+  player8: [
+    {
+      x: MAP.startLeft + 10 * 16,
+      y: MAP.startTop + 6 * 16,
+    },
+    {
+      x: MAP.startLeft + 11 * 16,
+      y: MAP.startTop + 6 * 16,
+    },
+    {
+      x: MAP.startLeft + 10 * 16,
+      y: MAP.startTop + 5 * 16,
+    },
+  ],
+};
+export const CENTEROBJECTS = [
+  { x: MAP.startLeft + 32, y: MAP.startTop + 16 },
+  { x: MAP.startLeft + 32, y: MAP.startTop + 32 },
+  { x: MAP.startLeft + 32, y: MAP.startTop + 48 },
+  { x: MAP.startLeft + 16, y: MAP.startTop + 32 },
+  { x: MAP.startLeft + 48, y: MAP.startTop + 32 },
+
+  { x: MAP.endRight - 48, y: MAP.startTop + 16 },
+  { x: MAP.endRight - 48, y: MAP.startTop + 32 },
+  { x: MAP.endRight - 48, y: MAP.startTop + 48 },
+  { x: MAP.endRight - 32, y: MAP.startTop + 32 },
+  { x: MAP.endRight - 64, y: MAP.startTop + 32 },
+
+  { x: MAP.startLeft + 32, y: MAP.startTop + 80 },
+  { x: MAP.startLeft + 32, y: MAP.startTop + 96 },
+  { x: MAP.startLeft + 32, y: MAP.startTop + 112 },
+  { x: MAP.startLeft + 16, y: MAP.startTop + 96 },
+  { x: MAP.startLeft + 48, y: MAP.startTop + 96 },
+
+  { x: MAP.endRight - 48, y: MAP.startTop + 80 },
+  { x: MAP.endRight - 48, y: MAP.startTop + 96 },
+  { x: MAP.endRight - 48, y: MAP.startTop + 112 },
+  { x: MAP.endRight - 32, y: MAP.startTop + 96 },
+  { x: MAP.endRight - 64, y: MAP.startTop + 96 },
+
+  { x: MAP.startLeft + 32, y: MAP.endBottom - 32 },
+  { x: MAP.startLeft + 32, y: MAP.endBottom - 48 },
+  { x: MAP.startLeft + 32, y: MAP.endBottom - 64 },
+  { x: MAP.startLeft + 16, y: MAP.endBottom - 48 },
+  { x: MAP.startLeft + 48, y: MAP.endBottom - 48 },
+
+  { x: MAP.endRight - 48, y: MAP.endBottom - 32 },
+  { x: MAP.endRight - 48, y: MAP.endBottom - 48 },
+  { x: MAP.endRight - 48, y: MAP.endBottom - 64 },
+  { x: MAP.endRight - 32, y: MAP.endBottom - 48 },
+  { x: MAP.endRight - 64, y: MAP.endBottom - 48 },
+
+  { x: MAP.startLeft + 32, y: MAP.endBottom - 96 },
+  { x: MAP.startLeft + 32, y: MAP.endBottom - 112 },
+  { x: MAP.startLeft + 32, y: MAP.endBottom - 128 },
+  { x: MAP.startLeft + 16, y: MAP.endBottom - 112 },
+  { x: MAP.startLeft + 48, y: MAP.endBottom - 112 },
+
+  { x: MAP.endRight - 48, y: MAP.endBottom - 96 },
+  { x: MAP.endRight - 48, y: MAP.endBottom - 112 },
+  { x: MAP.endRight - 48, y: MAP.endBottom - 128 },
+  { x: MAP.endRight - 32, y: MAP.endBottom - 112 },
+  { x: MAP.endRight - 64, y: MAP.endBottom - 112 },
+];
+
 export const CARPET = [
   {
     x: 0,
@@ -531,4 +606,34 @@ export const ARROWGROUND1 = [
   { x: MAP.startLeft + 32, y: MAP.startTop + 256, type: "up" },
   { x: MAP.startLeft + 64, y: MAP.startTop + 256, type: "right" },
   { x: MAP.endRight - 48, y: MAP.startTop + 256, type: "up" },
+];
+
+export const BALANCOIRE = [
+  { x: MAP.startLeft + 0, y: MAP.startTop + 32 },
+  { x: MAP.startLeft + 32, y: MAP.startTop + 32 },
+  { x: MAP.startLeft + 0, y: MAP.startTop + 64 },
+  { x: MAP.startLeft + 32, y: MAP.startTop + 64 },
+  { x: MAP.startLeft + 0, y: MAP.startTop + 96 },
+  { x: MAP.startLeft + 32, y: MAP.startTop + 96 },
+
+  { x: MAP.endRight - 16, y: MAP.startTop + 32 },
+  { x: MAP.endRight - 48, y: MAP.startTop + 32 },
+  { x: MAP.endRight - 16, y: MAP.startTop + 64 },
+  { x: MAP.endRight - 48, y: MAP.startTop + 64 },
+  { x: MAP.endRight - 16, y: MAP.startTop + 96 },
+  { x: MAP.endRight - 48, y: MAP.startTop + 96 },
+
+  { x: MAP.startLeft + 0, y: MAP.endBottom - 48 },
+  { x: MAP.startLeft + 32, y: MAP.endBottom - 48 },
+  { x: MAP.startLeft + 0, y: MAP.endBottom - 80 },
+  { x: MAP.startLeft + 32, y: MAP.endBottom - 80 },
+  { x: MAP.startLeft + 0, y: MAP.endBottom - 112 },
+  { x: MAP.startLeft + 32, y: MAP.endBottom - 112 },
+
+  { x: MAP.endRight - 16, y: MAP.endBottom - 48 },
+  { x: MAP.endRight - 48, y: MAP.endBottom - 48 },
+  { x: MAP.endRight - 16, y: MAP.endBottom - 80 },
+  { x: MAP.endRight - 48, y: MAP.endBottom - 80 },
+  { x: MAP.endRight - 16, y: MAP.endBottom - 112 },
+  { x: MAP.endRight - 48, y: MAP.endBottom - 112 },
 ];

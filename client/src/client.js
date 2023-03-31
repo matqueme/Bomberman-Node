@@ -88,7 +88,7 @@ const adminBtn = (admin) => {
     //lanch a function when the btn is clicked
     start.addEventListener("click", (e) => {
       e.preventDefault();
-      sock.emit("start", roomData.nameroom);
+      sock.emit("start", roomData.roomName);
       //remove the btn
       document.querySelector("#startbtn").remove();
     });
@@ -120,11 +120,11 @@ const generateParametersAdmin = (admin) => {
       });
 
     document.getElementById("btnMapGauche").addEventListener("click", () => {
-      sock.emit("changeMap", -1, roomData.nameroom);
+      sock.emit("changeMap", -1, roomData.roomName);
     });
 
     document.getElementById("btnMapDroite").addEventListener("click", () => {
-      sock.emit("changeMap", 1, roomData.nameroom);
+      sock.emit("changeMap", 1, roomData.roomName);
     });
   } else {
     container.innerHTML = HTMLPLAYER;
@@ -137,7 +137,7 @@ const onChatSubmitted = (sock) => (e) => {
   const input = document.querySelector("#chat-input");
   const text = input.value;
   input.value = "";
-  sock.emit("message", text, roomData.nameroom);
+  sock.emit("message", text, roomData.roomName);
 };
 
 // Choisir son nom et sa room
@@ -453,7 +453,7 @@ function placeBomb() {
 
   // Envoyer la position de la bombe au serveur
   sock.emit("addBomb", {
-    room: roomData.nameroom,
+    room: roomData.roomName,
     x: x,
     y: y,
   });
@@ -518,7 +518,7 @@ function animate(currentTime) {
     if (checkArrowKeys(keys)) {
       // Envoyer au serveur la position du joueur
       sock.emit("updateCharacterPosition", {
-        room: roomData.nameroom,
+        roomName: roomData.roomName,
         x: characters[sock.id].x,
         y: characters[sock.id].y,
       });

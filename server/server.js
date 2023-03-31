@@ -5,6 +5,7 @@ import { Server } from "socket.io";
 //calculer le temps d'import
 
 import {
+  ROOMDEFAULT,
   MAP,
   MAPS,
   PLAYERSTARTPOSITIONS,
@@ -12,6 +13,8 @@ import {
   CARPET,
   TRAPDOOR,
   ARROWGROUND1,
+  BALANCOIRE,
+  PLAYERSTARTPOSITIONSMINI,
 } from "./const.js";
 
 const app = express();
@@ -27,50 +30,31 @@ io.on("connection", (socket) => {
   //CONNECTION
   socket.on("joinRoom", (param) => {
     console.log("------------------");
-
+    let roomName = param.room;
     // Rejoindre la room
     socket.join(param.room);
     console.log(
-      `Client connected: ${socket.id}, name : ${param.name}, to room : "${param.room}"`
+      `Client connected: ${socket.id}, name : ${param.name}, to room : "${roomName}"`
     );
 
-    // Créer une nouvelle room
-    if (!rooms[param.room]) {
-      rooms[param.room] = {
-        players: {},
-        bombs: {},
-        explosions: {},
-        walls: [],
-        wallsDestroy: [],
-        items: {},
-        roomData: {
-          nameroom: param.room,
-          maxPlayers: 8,
-          mapParameter: MAPS[0],
-          gameStarted: false,
-          nextBombId: 0,
-          nextExplosionId: 0,
-          nextItemId: 0,
-        },
-      };
-      //generateWalls(param.room);
+    // Création d'une nouvelle room
+    if (!rooms[roomName]) {
+      rooms[roomName] = ROOMDEFAULT;
+      rooms[roomName].roomData.roomName = roomName;
+      console.log(rooms);
     }
 
-    //Si il y a plus de 8 joueurs dans la room, on quitte
-    if (Object.keys(rooms[param.room].players).length >= 8) {
+    //Si il y a plus de 8 joueurs dans la room ou si la partie a commencé
+    if (
+      Object.keys(rooms[roomName].players).length >= 8 ||
+      rooms[roomName].roomData.gameStarted
+    )
       return;
-    }
-
-    // Si la partie a déjà commencé, on ne fait rien
-    if (rooms[param.room].roomData.gameStarted) {
-      console.log("Game already started");
-      return;
-    }
 
     //creation du numero de joueur le plus petit disponible
     let smallestPlayerNumber = 1;
     const usedNumbers = new Set(
-      Object.values(rooms[param.room].players).map(
+      Object.values(rooms[roomName].players).map(
         (player) => player.playerNumber
       )
     );
@@ -79,43 +63,40 @@ io.on("connection", (socket) => {
     }
 
     // Si il n'y a aucun joueur dans la room on le met en admin
-    rooms[param.room].players[socket.id] = {
+    rooms[roomName].players[socket.id] = {
       id: socket.id,
       name: param.name,
       x: PLAYERSTARTPOSITIONS["player" + smallestPlayerNumber][0].x,
       y: PLAYERSTARTPOSITIONS["player" + smallestPlayerNumber][0].y,
       alive: true,
-      admin: Object.keys(rooms[param.room].players).length == 0,
+      admin: Object.keys(rooms[roomName].players).length == 0,
       playerNumber: smallestPlayerNumber,
       bombType: 7,
       bombMax: 4,
       bombRange: 1,
     };
 
-    if (Object.keys(rooms[param.room].players).length >= 2) {
-      adminStartBtn(true, param.room);
+    if (Object.keys(rooms[roomName].players).length >= 2) {
+      adminStartBtn(true, roomName);
     }
 
     // Envoyer ses informations au joueur qui vient de rejoindre
-    for (let id in rooms[param.room].players) {
-      io.to(socket.id).emit("addCharacter", rooms[param.room].players[id]);
+    for (let id in rooms[roomName].players) {
+      io.to(socket.id).emit("addCharacter", rooms[roomName].players[id]);
     }
 
-    io.to(socket.id).emit(
-      "isAdmin",
-      rooms[param.room].players[socket.id].admin
-    );
+    io.to(socket.id).emit("isAdmin", rooms[roomName].players[socket.id].admin);
 
     io.to(socket.id).emit(
       "addParam",
-      rooms[param.room].roomData,
-      MAPS.indexOf(rooms[param.room].roomData.mapParameter)
+      rooms[roomName].roomData,
+      MAPS.indexOf(rooms[roomName].roomData.mapParameter)
     );
 
-    io.to(socket.id).emit("addWalls", rooms[param.room].walls);
+    io.to(socket.id).emit("addWalls", rooms[roomName].walls);
 
     // Envoyer les informations du nouveau joueur aux autres joueurs
-    socket.broadcast.emit("addCharacter", rooms[param.room].players[socket.id]);
+    socket.broadcast.emit("addCharacter", rooms[roomName].players[socket.id]);
   });
 
   //CHAT
@@ -128,26 +109,13 @@ io.on("connection", (socket) => {
   }); //envoie un message a tt le monde meme l'utilisateur
 
   //CHANGE LE JOUEUR -------------------
-  socket.on("changePlayerNumber", (param) => {
-    // let user = users.getUser(socket.id);
-    // if (settings.getState(user.room) == 0 && user) {
-    //   users.setChangePlayerNumber(socket.id, param);
-    //   io.to(user.room).emit(
-    //     "updateUserList",
-    //     users.getUserList(user.room),
-    //     users.getPlayerNumberList(user.room)
-    //   );
-    //   io.to(socket.id).emit(
-    //     "playernumberTab",
-    //     users.getNumberPlayer(socket.id)
-    //   );
-    //}
-  });
+  socket.on("changePlayerNumber", (param) => {});
 
   socket.on("updateCharacterPosition", (data) => {
+    let roomName = data.roomName;
     // Mettre à jour la position du joueur
-    rooms[data.room].players[socket.id].x = data.x;
-    rooms[data.room].players[socket.id].y = data.y;
+    rooms[roomName].players[socket.id].x = data.x;
+    rooms[roomName].players[socket.id].y = data.y;
 
     // Envoyer les informations de mise à jour a tout les joueurs
     io.emit("updateCharacterPosition", {
@@ -159,6 +127,7 @@ io.on("connection", (socket) => {
 
   //Add bomb
   socket.on("addBomb", (data) => {
+    let roomName = data.room;
     if (
       data.x < MAP.startLeft ||
       data.x > MAP.endRight ||
@@ -168,32 +137,32 @@ io.on("connection", (socket) => {
       return;
     //verifier que l'utilisateur n'a pas déposer son max de bombe
     if (
-      Object.keys(rooms[data.room].bombs).filter(
-        (bomb) => rooms[data.room].bombs[bomb].owner == socket.id
-      ).length >= rooms[data.room].players[socket.id].bombMax
+      Object.keys(rooms[roomName].bombs).filter(
+        (bomb) => rooms[roomName].bombs[bomb].owner == socket.id
+      ).length >= rooms[roomName].players[socket.id].bombMax
     )
       return;
 
     let timeToExplode = 3000;
-    let bombRange = rooms[data.room].players[socket.id].bombRange;
-    let bombType = rooms[data.room].players[socket.id].bombType;
+    let bombRange = rooms[roomName].players[socket.id].bombRange;
+    let bombType = rooms[roomName].players[socket.id].bombType;
 
-    if (rooms[data.room].players[socket.id].bombType == 2) {
+    if (rooms[roomName].players[socket.id].bombType == 2) {
       timeToExplode = -1;
-    } else if (rooms[data.room].players[socket.id].bombType == 4) {
-      !Object.values(rooms[data.room].bombs).find(
+    } else if (rooms[roomName].players[socket.id].bombType == 4) {
+      !Object.values(rooms[roomName].bombs).find(
         (bomb) => bomb.owner == socket.id && bomb.bombType == 4
       )
         ? (bombRange = 8)
         : (bombType = 1);
-    } else if (rooms[data.room].players[socket.id].bombType == 5) {
-      !Object.values(rooms[data.room].bombs).find(
+    } else if (rooms[roomName].players[socket.id].bombType == 5) {
+      !Object.values(rooms[roomName].bombs).find(
         (bomb) => bomb.owner == socket.id && bomb.bombType == 5
       )
         ? (timeToExplode = -1)
         : (bombType = 1);
-    } else if (rooms[data.room].players[socket.id].bombType == 7) {
-      !Object.values(rooms[data.room].bombs).find(
+    } else if (rooms[roomName].players[socket.id].bombType == 7) {
+      !Object.values(rooms[roomName].bombs).find(
         (bomb) => bomb.owner == socket.id && bomb.bombType == 7
       )
         ? (bombRange = 2)
@@ -203,25 +172,26 @@ io.on("connection", (socket) => {
     const bomb = new Bomb(
       data.x,
       data.y,
-      rooms[data.room].roomData.nextBombId,
+      rooms[roomName].roomData.nextBombId,
       bombType,
       bombRange,
       timeToExplode,
       socket.id
     );
     // Ajoute la bombe à la liste des bombes de la salle correspondante
-    rooms[data.room].bombs[rooms[data.room].roomData.nextBombId] = bomb;
+    rooms[roomName].bombs[rooms[roomName].roomData.nextBombId] = bomb;
 
     // Met à jour la variable nextBombId de la salle pour la prochaine bombe
-    rooms[data.room].roomData.nextBombId++;
+    rooms[roomName].roomData.nextBombId++;
 
     // Envoie la bombe à tout les joueurs dans la room
-    io.to(data.room).emit("addBomb", bomb);
+    io.to(roomName).emit("addBomb", bomb);
   });
 
   //--------------------Paramètres--------------------
 
   socket.on("changeMap", (param, roomName) => {
+    console.log(roomName);
     let user = rooms[roomName].players[socket.id];
     if (user.admin) {
       let newIndex =
@@ -437,7 +407,7 @@ function wallDestructible(x, y, room) {
         time: 500,
       });
       //envoyer les nouveaux walls aux joueurs
-      io.to(room.roomData.nameroom).emit("addWalls", room.walls);
+      io.to(room.roomData.roomName).emit("addWalls", room.walls);
     }
   }
 }
@@ -446,6 +416,17 @@ function isPlayerStart(x, y) {
   for (let player in PLAYERSTARTPOSITIONS) {
     for (let position of PLAYERSTARTPOSITIONS[player]) {
       if (x == position.x && y == position.y) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+function isPlayerStart2(x, y) {
+  for (let player in PLAYERSTARTPOSITIONSMINI) {
+    for (let position of PLAYERSTARTPOSITIONSMINI[player]) {
+      if (x == position.x && y == position.y) {
+        console.log("aaa");
         return true;
       }
     }
@@ -489,11 +470,20 @@ function isArrowInTheGround(x, y) {
   return false;
 }
 
+function isBalancoire(x, y) {
+  for (let balancoire of BALANCOIRE) {
+    if (x == balancoire.x && y == balancoire.y) {
+      return true;
+    }
+  }
+  return false;
+}
+
 // Generate walls
 function generateWallsDestructible(generatewall, room) {
   console.log(generatewall);
   let walls = [];
-  let wallTotal = 214;
+  let wallTotal = 182;
   if (generatewall === 2) {
     wallTotal = wallTotal - CENTEROBJECTS.length;
   } else if (generatewall === 3) {
@@ -502,8 +492,42 @@ function generateWallsDestructible(generatewall, room) {
     wallTotal = wallTotal - TRAPDOOR.length;
   } else if (generatewall === 5) {
     wallTotal = wallTotal - ARROWGROUND1.length - CENTEROBJECTS.length;
+  } else if (generatewall === 6) {
+    wallTotal = wallTotal - BALANCOIRE.length - 12;
+  } else if (generatewall === 7) {
+    wallTotal = 0;
+  } else if (generatewall === 8) {
+    wallTotal = 0;
+    for (let i = 0; i < 2; i++) {
+      for (let y = 0; y < 144; y += 16) {
+        for (let x = 0; x < 240; x += 16) {
+          const wall = {
+            x: x + MAP.startLeft,
+            y: y + MAP.startTop + i * 192,
+            width: 16,
+            height: 16,
+            destructible: true,
+          };
+          if (
+            x > 16 &&
+            x < 208 &&
+            y + i * 192 > 16 + i * 192 &&
+            y + i * 192 < 112 + i * 192
+          ) {
+            continue; // Si oui, passe au carré suivant
+          }
+          if (!isPlayerStart(x + MAP.startLeft, y + MAP.startTop + i * 192))
+            walls.push(wall);
+        }
+      }
+    }
+  } else if (generatewall === 9) {
+    wallTotal = wallTotal / 2;
+  } else if (generatewall === 10) {
+    wallTotal = wallTotal + 30;
   }
-  const randomRatioWall = getRandomArbitrary(0.55, 0.75);
+
+  const randomRatioWall = getRandomArbitrary(0.65, 0.8);
   const wallDestructible = Math.floor(wallTotal * randomRatioWall);
   while (walls.length < wallDestructible) {
     const x = random(0, 14) * 16 + MAP.startLeft;
@@ -529,6 +553,8 @@ function generateWallsDestructible(generatewall, room) {
         walls.push(wall);
       } else if (generatewall === 4 && !isTrapdoor(x, y)) {
         walls.push(wall);
+      } else if (generatewall === 6 && !isBalancoire(x, y)) {
+        walls.push(wall);
       } else if (
         generatewall === 5 &&
         !isArrowInTheGround(x, y) &&
@@ -538,7 +564,23 @@ function generateWallsDestructible(generatewall, room) {
       } else if (
         generatewall === 1 ||
         generatewall === 16 ||
-        generatewall === 17
+        generatewall === 17 ||
+        generatewall === 10 ||
+        generatewall === 11 //pas oublier les spikes
+      ) {
+        walls.push(wall);
+      } else if (
+        generatewall === 9 &&
+        y <= 144 + MAP.startTop &&
+        !isPlayerStart2(x, y)
+      ) {
+        walls.push(wall);
+      } else if (
+        generatewall === 11 ||
+        generatewall === 12 ||
+        generatewall === 13 ||
+        generatewall === 14 ||
+        generatewall === 15
       ) {
         walls.push(wall);
       } else {
@@ -564,8 +606,8 @@ function generateWallsIndestructible(generationWall) {
   const xValues = [16, 48, 80, 112, 144, 176, 208];
   const yValues = [16, 48, 80, 112, 208, 240, 272, 304];
 
-  if (generationWall === 8 || generationWall === 10) {
-    xValues.splice(0, yValues.length);
+  if (generationWall === 8 || generationWall === 10 || generationWall === 11) {
+    xValues.splice(0, xValues.length);
   } else if (generationWall === 9) {
     yValues.splice(4, yValues.length);
   }
@@ -593,6 +635,19 @@ function generateWallsIndestructible(generationWall) {
     xTunnel.push(32, 64, 96, 104, 128, 160, 192);
   } else if (generationWall === 15) {
     xTunnel.push(32, 192);
+  } else if (generationWall === 6) {
+    addWall(16, 32, false);
+    addWall(16, 64, false);
+    addWall(16, 96, false);
+    addWall(16, 224, false);
+    addWall(16, 256, false);
+    addWall(16, 288, false);
+    addWall(208, 32, false);
+    addWall(208, 64, false);
+    addWall(208, 96, false);
+    addWall(208, 224, false);
+    addWall(208, 256, false);
+    addWall(208, 288, false);
   }
 
   for (let i = 0; i < xTunnel.length; i++) {
@@ -654,7 +709,7 @@ function generateItem(room, x, y) {
     room.items[room.roomData.nextItemId] = item;
 
     //envoyer les nouveaux items aux joueurs
-    io.to(room.roomData.nameroom).emit(
+    io.to(room.roomData.roomName).emit(
       "addItem",
       room.items[room.roomData.nextItemId],
       room.roomData.nextItemId
@@ -711,10 +766,10 @@ function updateBombs(room) {
       delete room.bombs[bombId];
 
       // Envoyer un événement aux clients de la room pour indiquer que la bombe a explosé
-      io.to(room.roomData.nameroom).emit("bombExploded", bombId);
+      io.to(room.roomData.roomName).emit("bombExploded", bombId);
 
       // Envoyer les explosions
-      io.to(room.roomData.nameroom).emit("addExplosion", room.explosions);
+      io.to(room.roomData.roomName).emit("addExplosion", room.explosions);
     }
   }
 }
@@ -724,7 +779,7 @@ function updateExplosions(room) {
     const explosion = room.explosions[explosionId];
     if (Date.now() - explosion.date >= 500) {
       delete room.explosions[explosionId];
-      io.to(room.roomData.nameroom).emit("explosionEnded", explosionId);
+      io.to(room.roomData.roomName).emit("explosionEnded", explosionId);
     }
     //si un joueur est sur une explosion
     for (const playerId in room.players) {
@@ -738,7 +793,7 @@ function updateExplosions(room) {
       ) {
         console.log(player.name + " est mort (Id : " + playerId + ")");
         player.alive = false;
-        io.to(room.roomData.nameroom).emit("playerDied", playerId);
+        io.to(room.roomData.roomName).emit("playerDied", playerId);
       }
     }
   }
