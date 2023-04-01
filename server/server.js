@@ -43,7 +43,6 @@ io.on("connection", (socket) => {
     if (!rooms[roomName]) {
       rooms[roomName] = ROOMDEFAULT;
       rooms[roomName].roomData.roomName = roomName;
-      console.log(rooms);
     }
 
     //Si il y a plus de 8 joueurs dans la room ou si la partie a commencé
@@ -75,7 +74,7 @@ io.on("connection", (socket) => {
       playerNumber: smallestPlayerNumber,
       bombType: 7,
       bombMax: 4,
-      bombRange: 1,
+      bombRange: 3,
     };
 
     if (Object.keys(rooms[roomName].players).length >= 2) {
@@ -111,7 +110,7 @@ io.on("connection", (socket) => {
   }); //envoie un message a tt le monde meme l'utilisateur
 
   //CHANGE LE JOUEUR -------------------
-  socket.on("changePlayerNumber", (param) => {});
+  socket.on("changePlayerNumber", (param) => { });
 
   socket.on("updateCharacterPosition", (data) => {
     let roomName = data.roomName;
@@ -260,8 +259,7 @@ io.on("connection", (socket) => {
 
         // On supprime le joueur de la room
         console.log(
-          `Le joueur "${
-            room.players[socket.id].name
+          `Le joueur "${room.players[socket.id].name
           }" a été supprimé de la room "${roomName}"`
         );
         delete room.players[socket.id];
@@ -319,19 +317,19 @@ function collideBomb(x, y, room) {
 
 /*--------------------------WALL------------------------------- */
 
-function collideWall2(x, y, wall) {
-  for (let id = 0; id < wall.length; id++) {
-    if (x == wall[id].x && y == wall[id].y) {
+function collideWall(x, y, room) {
+  for (let id = 0; id < room.walls.length; id++) {
+    const wall = room.walls[id];
+    if (x == wall.x && y == wall.y) {
       return true;
     }
   }
   return false;
 }
 
-function collideWall(x, y, room) {
-  for (let id = 0; id < room.walls.length; id++) {
-    const wall = room.walls[id];
-    if (x == wall.x && y == wall.y) {
+function collideWallGenerate(x, y, wall) {
+  for (let id = 0; id < wall.length; id++) {
+    if (x + MAP.startLeft == wall[id].x && y + MAP.startTop == wall[id].y) {
       return true;
     }
   }
@@ -388,21 +386,10 @@ function wallDestructible(x, y, room) {
 
 /*--------------------------GENERATE WALL------------------------------- */
 
-function isPlayerStart(x, y) {
-  for (let player in PLAYERSTARTPOSITIONS) {
-    for (let position of PLAYERSTARTPOSITIONS[player]) {
-      if (x == position.x && y == position.y) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-function isPlayerStart2(x, y) {
-  for (let player in PLAYERSTARTPOSITIONSMINI) {
-    for (let position of PLAYERSTARTPOSITIONSMINI[player]) {
-      if (x == position.x && y == position.y) {
-        console.log("aaa");
+function isPlayerStart(x, y, type) {
+  for (let player in type) {
+    for (let position of type[player]) {
+      if (x + MAP.startLeft == position.x && y + MAP.startTop == position.y) {
         return true;
       }
     }
@@ -412,7 +399,7 @@ function isPlayerStart2(x, y) {
 
 function isObject(x, y, type) {
   for (let object of type) {
-    if (x == object.x && y == object.y) {
+    if (x + MAP.startLeft == object.x && y + MAP.startTop == object.y) {
       return true;
     }
   }
@@ -433,7 +420,7 @@ function generateWallSquare() {
         ) {
           continue; // Si oui, passe au carré suivant
         }
-        if (!isPlayerStart(x + MAP.startLeft, y + MAP.startTop + i * 192))
+        if (!isPlayerStart(x, y + i * 192, PLAYERSTARTPOSITIONS))
           walls.push(wall);
       }
     }
@@ -443,93 +430,61 @@ function generateWallSquare() {
 
 // Generate walls
 function generateWallsDestructible(generatewall, room) {
-  console.log(generatewall);
   let walls = [];
   let wallTotal = 182;
+  const valuesToSubtract = {
+    2: CENTEROBJECTS.length,
+    3: CARPET.length,
+    4: TRAPDOOR.length,
+    5: ARROWGROUND1.length + CENTEROBJECTS.length,
+    6: BALANCOIRE.length + 12,
+    7: 182,
+    8: 182,
+    9: 91,
+  };
+  // si generatewall est dans valuesToSubtract, on soustrait la valeur correspondante
+  if (valuesToSubtract[generatewall])
+    wallTotal -= valuesToSubtract[generatewall];
+
   // Nombre de murs destructibles
-  if (generatewall === 2) {
-    wallTotal = wallTotal - CENTEROBJECTS.length;
-  } else if (generatewall === 3) {
-    wallTotal = wallTotal - CARPET.length;
-  } else if (generatewall === 4) {
-    wallTotal = wallTotal - TRAPDOOR.length;
-  } else if (generatewall === 5) {
-    wallTotal = wallTotal - ARROWGROUND1.length - CENTEROBJECTS.length;
-  } else if (generatewall === 6) {
-    wallTotal = wallTotal - BALANCOIRE.length - 12;
-  } else if (generatewall === 7) {
-    wallTotal = 0;
-  } else if (generatewall === 8) {
-    wallTotal = 0;
+  if (generatewall === 8) {
     walls = generateWallSquare();
-  } else if (generatewall === 9) {
-    wallTotal = wallTotal / 2;
   } else if (generatewall === 10) {
-    wallTotal = wallTotal + 30;
+    wallTotal += 30;
   }
 
   const randomRatioWall = getRandomArbitrary(0.65, 0.8);
   const wallDestructible = Math.floor(wallTotal * randomRatioWall);
 
   while (walls.length < wallDestructible) {
-    let x = random(0, 14) * 16;
-    let y = random(0, 20) * 16;
+    const x = random(0, 14) * 16;
+    const y = random(0, 20) * 16;
     const wall = new Wall(x, y, true);
-    x = x + MAP.startLeft;
-    y = y + MAP.startTop;
+
+    const isCenterObject = isObject(x, y, CENTEROBJECTS);
+    const isArrowGround = isObject(x, y, ARROWGROUND1);
+    const allowedValues = [1, 10, 11, 12, 13, 14, 15, 16, 17];
     if (
-      !collideWall(x, y, rooms[room]) &&
-      y != 144 + MAP.startTop &&
-      y != 160 + MAP.startTop &&
-      y != 176 + MAP.startTop &&
-      !isPlayerStart(x, y) &&
-      !collideWall2(x, y, walls)
+      ![144, 160, 176].includes(y) &&
+      !isPlayerStart(x, y, PLAYERSTARTPOSITIONS) &&
+      !collideWallGenerate(x, y, rooms[room].walls) &&
+      !collideWallGenerate(x, y, walls)
     ) {
-      if (generatewall === 2 && !isObject(x, y, CENTEROBJECTS)) {
-        walls.push(wall);
-      } else if (generatewall === 3 && !isObject(x, y, CARPET)) {
-        walls.push(wall);
-      } else if (generatewall === 4 && !isObject(x, y, TRAPDOOR)) {
-        walls.push(wall);
-      } else if (generatewall === 6 && !isObject(x, y, BALANCOIRE)) {
-        walls.push(wall);
-      } else if (
-        generatewall === 5 &&
-        !isObject(x, y, ARROWGROUND1) &&
-        !isObject(x, y, CENTEROBJECTS)
+      if (
+        allowedValues.includes(generatewall) ||
+        (generatewall === 2 && !isCenterObject) ||
+        (generatewall === 3 && !isObject(x, y, CARPET)) ||
+        (generatewall === 4 && !isObject(x, y, TRAPDOOR)) ||
+        (generatewall === 5 && !isArrowGround && !isCenterObject) ||
+        (generatewall === 6 && !isObject(x, y, BALANCOIRE)) ||
+        (generatewall === 9 && y <= 144 && !isPlayerStart(x, y, PLAYERSTARTPOSITIONSMINI))
       ) {
         walls.push(wall);
-      } else if (
-        generatewall === 1 ||
-        generatewall === 16 ||
-        generatewall === 17 ||
-        generatewall === 10 ||
-        generatewall === 11
-      ) {
-        walls.push(wall);
-      } else if (
-        generatewall === 9 &&
-        y <= 144 + MAP.startTop &&
-        !isPlayerStart2(x, y)
-      ) {
-        walls.push(wall);
-      } else if (
-        generatewall === 11 ||
-        generatewall === 12 ||
-        generatewall === 13 ||
-        generatewall === 14 ||
-        generatewall === 15
-      ) {
-        walls.push(wall);
-      } else {
-        // walls.push(wall);
-        //console.log(x, y);
       }
     }
   }
   walls.sort((a, b) => a.y - b.y);
   return walls;
-  // rooms[room].walls.sort((a, b) => a.y - b.y);
 }
 
 function generateWallsIndestructible(generationWall) {
@@ -550,14 +505,11 @@ function generateWallsIndestructible(generationWall) {
   }
 
   // Générer les variations
-  for (let i = 0; i < xValues.length; i++) {
-    for (let j = 0; j < yValues.length; j++) {
-      addWall(xValues[i], yValues[j], false);
-    }
-  }
+  generateWalls(xValues, yValues, false);
 
   let xTunnel = [16, 48, 80, 112, 144, 176, 208];
   let yTunnel = [144, 160, 176];
+
   if (generationWall === 16) {
     xTunnel.push(32, 64, 96, 128, 160, 192);
     xTunnel.splice(3, 1);
@@ -573,34 +525,17 @@ function generateWallsIndestructible(generationWall) {
   } else if (generationWall === 15) {
     xTunnel.push(32, 192);
   } else if (generationWall === 6) {
-    addWall(16, 32, false);
-    addWall(16, 64, false);
-    addWall(16, 96, false);
-    addWall(16, 224, false);
-    addWall(16, 256, false);
-    addWall(16, 288, false);
-    addWall(208, 32, false);
-    addWall(208, 64, false);
-    addWall(208, 96, false);
-    addWall(208, 224, false);
-    addWall(208, 256, false);
-    addWall(208, 288, false);
+    generateWalls([16, 208], [32, 64, 96, 224, 256, 288], false);
   }
 
-  for (let i = 0; i < xTunnel.length; i++) {
-    for (let j = 0; j < yTunnel.length; j++) {
-      addWall(xTunnel[i], yTunnel[j], false);
+  generateWalls(xTunnel, yTunnel, false);
+
+  function generateWalls(xValues, yValues, destructible) {
+    for (let i = 0; i < xValues.length; i++) {
+      for (let j = 0; j < yValues.length; j++) {
+        walls.push(new Wall(xValues[i], yValues[j], destructible));
+      }
     }
-  }
-
-  function addWall(x, y, type) {
-    walls.push({
-      x: 8 + x,
-      y: 32 + y,
-      width: 16,
-      height: 16,
-      destructible: type,
-    });
   }
 
   return walls;
@@ -618,42 +553,43 @@ function generateWallsIndestructible(generationWall) {
     bomb less = 10
     */
 function generateItem(room, x, y) {
-  const probaItem = getRandomArbitrary(0, 100);
-  //35% de chance d'avoir un item
-  if (probaItem < 35) {
-    const probaType = getRandomArbitrary(0, 100);
-    let type = "";
-    if (probaType < 20) {
-      type = "fire";
-    } else if (probaType < 30) {
-      type = "fireMax";
-    } else if (probaType < 40) {
-      type = "fireLow";
-    } else if (probaType < 60) {
-      type = "speed";
-    } else if (probaType < 70) {
-      type = "slow";
-    } else if (probaType < 90) {
-      type = "bomb";
-    } else if (probaType < 100) {
-      type = "bombLess";
+  //40% de chance d'avoir un item
+  if (getRandomArbitrary(0, 100) >= 40) return;
+
+  const typeProbas = {
+    fire: 20,
+    fireMax: 10,
+    fireLow: 10,
+    speed: 20,
+    slow: 10,
+    bomb: 20,
+    bombLess: 10,
+  };
+
+  const probaType = getRandomArbitrary(0, 100);
+  let type = "";
+  let start = 0;
+  for (const [key, value] of Object.entries(typeProbas)) {
+    const end = start + value;
+    if (probaType >= start && probaType < end) {
+      type = key;
+      break;
     }
-    const item = {
-      x: x,
-      y: y,
-      type: type,
-    };
-    room.items[room.roomData.nextItemId] = item;
-
-    //envoyer les nouveaux items aux joueurs
-    io.to(room.roomData.roomName).emit(
-      "addItem",
-      room.items[room.roomData.nextItemId],
-      room.roomData.nextItemId
-    );
-
-    room.roomData.nextItemId++;
+    start = end;
   }
+  const item = { x, y, type, };
+  console.log(item);
+  room.items[room.roomData.nextItemId] = item;
+
+  //envoyer les nouveaux items aux joueurs
+  io.to(room.roomData.roomName).emit(
+    "addItem",
+    room.items[room.roomData.nextItemId],
+    room.roomData.nextItemId
+  );
+
+  room.roomData.nextItemId++;
+
 }
 
 /*-------------------------------BOUCLE INFINI-------------------------------*/
@@ -686,17 +622,10 @@ function updateBombs(room) {
       if (bomb.bombType === 7) {
         explosionDangerouse(bomb, room, date);
       } else {
-        // Explosion vers le haut
-        explodeUp(bomb.x, bomb.y, bomb, room, date, bomb.bombRange);
-
-        // Explosion vers le bas
-        explodeDown(bomb.x, bomb.y, bomb, room, date, bomb.bombRange);
-
-        // Explosion vers la gauche
-        explodeLeft(bomb.x, bomb.y, bomb, room, date, bomb.bombRange);
-
-        // Explosion vers la droite
-        explodeRight(bomb.x, bomb.y, bomb, room, date, bomb.bombRange);
+        explodeDirection(bomb.x, bomb.y, bomb, room, date, bomb.bombRange, "up");
+        explodeDirection(bomb.x, bomb.y, bomb, room, date, bomb.bombRange, "down");
+        explodeDirection(bomb.x, bomb.y, bomb, room, date, bomb.bombRange, "left");
+        explodeDirection(bomb.x, bomb.y, bomb, room, date, bomb.bombRange, "right");
       }
 
       // Supprimer la bombe de la liste
@@ -745,141 +674,54 @@ function updateWallDestroy(room) {
   }
 }
 
-function explodeUp(x, y, bomb, room, date, bombRange) {
-  for (let i = 1; i <= bombRange; i++) {
-    if (y - i * 16 < MAP.startTop) break;
+function explodeDirection(x, y, bomb, room, date, range, direction) {
+  const dx = direction === "left" ? -16 : direction === "right" ? 16 : 0;
+  const dy = direction === "up" ? -16 : direction === "down" ? 16 : 0;
+  for (let i = 1; i <= range; i++) {
+    const posX = x + i * dx;
+    const posY = y + i * dy;
+    if (posX < MAP.startLeft || posX >= MAP.endRight || posY < MAP.startTop || posY >= MAP.endBottom) break;
     if (bomb.bombType !== 3) {
-      if (isWallDestroyed(x, y - i * 16, room)) break;
-      if (collideWall(x, y - i * 16, room)) {
-        wallDestructible(x, y - i * 16, room);
+      if (isWallDestroyed(posX, posY, room)) break;
+      if (collideWall(posX, posY, room)) {
+        wallDestructible(posX, posY, room);
         break;
       }
     } else {
-      wallDestructible(x, y - i * 16, room);
-      if (collideWallIndestructible(x, y - i * 16, room)) break;
+      wallDestructible(posX, posY, room);
+      if (collideWallIndestructible(posX, posY, room)) break;
     }
-    collideBomb(x, y - i * 16, room);
-    if (!isExplosion(x, y - i * 16, room))
-      createExplosion(x, y - i * 16, "up", room, date);
+    collideBomb(posX, posY, room);
+    if (!isExplosion(posX, posY, room))
+      createExplosion(posX, posY, direction, room, date);
   }
 }
 
-function explodeDown(x, y, bomb, room, date, bombRange) {
-  for (let i = 1; i <= bombRange; i++) {
-    if (y + i * 16 >= MAP.endBottom) break;
-    if (bomb.bombType !== 3) {
-      if (isWallDestroyed(x, y + i * 16, room)) break;
-      if (collideWall(x, y + i * 16, room)) {
-        wallDestructible(x, y + i * 16, room);
-        break;
-      }
-    } else {
-      wallDestructible(x, y + i * 16, room);
-      if (collideWallIndestructible(x, y + i * 16, room)) break;
+function explodeInDirectionDangerouse(x, y, room, date, direction) {
+  for (let i = 1; i <= 2; i++) {
+    const dx = direction === "left" ? -i * 16 : direction === "right" ? i * 16 : 0;
+    const dy = direction === "up" ? -i * 16 : direction === "down" ? i * 16 : 0;
+    const posX = x + dx;
+    const posY = y + dy;
+    if (posX < MAP.startLeft || posX >= MAP.endRight || posY < MAP.startTop || posY >= MAP.endBottom) break;
+    if (isWallDestroyed(posX, posY, room)) break;
+    if (collideWall(posX, posY, room)) {
+      wallDestructible(posX, posY, room);
+      break;
     }
-    collideBomb(x, y + i * 16, room);
-    if (!isExplosion(x, y + i * 16, room))
-      createExplosion(x, y + i * 16, "down", room, date);
-  }
-}
-
-function explodeLeft(x, y, bomb, room, date, bombRange) {
-  for (let i = 1; i <= bombRange; i++) {
-    if (x - i * 16 < MAP.startLeft) break;
-    if (bomb.bombType !== 3) {
-      if (isWallDestroyed(x - i * 16, y, room)) break;
-      if (collideWall(x - i * 16, y, room)) {
-        wallDestructible(x - i * 16, y, room);
-        break;
-      }
-    } else {
-      wallDestructible(x - i * 16, y, room);
-      if (collideWallIndestructible(x - i * 16, y, room)) break;
-    }
-    collideBomb(x - i * 16, y, room);
-    if (!isExplosion(x - i * 16, y, room))
-      createExplosion(x - i * 16, y, "left", room, date);
-  }
-}
-
-function explodeRight(x, y, bomb, room, date, bombRange) {
-  for (let i = 1; i <= bombRange; i++) {
-    if (x + i * 16 >= MAP.endRight) break;
-    if (bomb.bombType !== 3) {
-      if (isWallDestroyed(x + i * 16, y, room)) break;
-      if (collideWall(x + i * 16, y, room)) {
-        wallDestructible(x + i * 16, y, room);
-        break;
-      }
-    } else {
-      wallDestructible(x + i * 16, y, room);
-      if (collideWallIndestructible(x + i * 16, y, room)) break;
-    }
-    collideBomb(x + i * 16, y, room);
-    if (!isExplosion(x + i * 16, y, room))
-      createExplosion(x + i * 16, y, "right", room, date);
+    collideBomb(posX, posY, room);
+    createExplosion(posX, posY, direction, room, date);
+    explodeDirection(posX, posY, { x, y }, room, date, 2, direction === "left" || direction === "right" ? "up" : "left");
+    explodeDirection(posX, posY, { x, y }, room, date, 2, direction === "left" || direction === "right" ? "down" : "right");
   }
 }
 
 function explosionDangerouse(bomb, room, date) {
-  // Explosion vers le haut
-  for (let i = 1; i <= 2; i++) {
-    if (bomb.y - i * 16 < MAP.startTop) break;
-    //pour ne pas faire exploser apres les walls deja detruit
-    if (isWallDestroyed(bomb.x, bomb.y - i * 16, room)) break;
-    //si on collisionne un wall
-    if (collideWall(bomb.x, bomb.y - i * 16, room)) {
-      wallDestructible(bomb.x, bomb.y - i * 16, room);
-      break;
-    }
-    collideBomb(bomb.x, bomb.y - i * 16, room);
-    createExplosion(bomb.x, bomb.y - i * 16, "up", room, date);
-    explodeLeft(bomb.x, bomb.y - i * 16, bomb, room, date, 2);
-    explodeRight(bomb.x, bomb.y - i * 16, bomb, room, date, 2);
-  }
-  //s'il y a une explosion a une position
 
-  // Explosion vers le bas
-  for (let i = 1; i <= 2; i++) {
-    if (bomb.y + i * 16 >= MAP.endBottom) break;
-    if (isWallDestroyed(bomb.x, bomb.y + i * 16, room)) break;
-    if (collideWall(bomb.x, bomb.y + i * 16, room)) {
-      wallDestructible(bomb.x, bomb.y + i * 16, room);
-      break;
-    }
-    collideBomb(bomb.x, bomb.y + i * 16, room);
-    createExplosion(bomb.x, bomb.y + i * 16, "down", room, date);
-    explodeLeft(bomb.x, bomb.y + i * 16, bomb, room, date, 2);
-    explodeRight(bomb.x, bomb.y + i * 16, bomb, room, date, 2);
-  }
-  // Explosion vers la gauche
-  for (let i = 1; i <= 2; i++) {
-    if (bomb.x - i * 16 < MAP.startLeft) break;
-    if (isWallDestroyed(bomb.x - i * 16, bomb.y, room)) break;
-    if (collideWall(bomb.x - i * 16, bomb.y, room)) {
-      wallDestructible(bomb.x - i * 16, bomb.y, room);
-      break;
-    }
-    collideBomb(bomb.x - i * 16, bomb.y, room);
-    createExplosion(bomb.x - i * 16, bomb.y, "left", room, date);
-    explodeUp(bomb.x - i * 16, bomb.y, bomb, room, date, 2);
-    explodeDown(bomb.x - i * 16, bomb.y, bomb, room, date, 2);
-  }
-
-  // Explosion vers la droite
-  for (let i = 1; i <= 2; i++) {
-    if (bomb.x + i * 16 >= MAP.endRight) break;
-    if (isWallDestroyed(bomb.x + i * 16, bomb.y, room)) break;
-    if (collideWall(bomb.x + i * 16, bomb.y, room)) {
-      wallDestructible(bomb.x + i * 16, bomb.y, room);
-      break;
-    }
-    collideBomb(bomb.x + i * 16, bomb.y, room);
-    createExplosion(bomb.x + i * 16, bomb.y, "right", room, date);
-    explodeUp(bomb.x + i * 16, bomb.y, bomb, room, date, 2);
-    explodeDown(bomb.x + i * 16, bomb.y, bomb, room, date, 2);
-  }
-
+  explodeInDirectionDangerouse(bomb.x, bomb.y, room, date, "up");
+  explodeInDirectionDangerouse(bomb.x, bomb.y, room, date, "down");
+  explodeInDirectionDangerouse(bomb.x, bomb.y, room, date, "left");
+  explodeInDirectionDangerouse(bomb.x, bomb.y, room, date, "right");
   //verifier qu'il y a une explosion a une position bomb.x, bomb.y
   //si oui, on ne fait pas exploser la bombe
   const positions = [
@@ -896,60 +738,36 @@ function explosionDangerouse(bomb, room, date) {
     // 3. If the bomb explodes at the current position, check if it explodes
     //    horizontally or vertically and call the corresponding function
     if (explosionDetected) {
-      if (x === 32) {
-        explodeLeft(bomb.x + x, bomb.y + y, bomb, room, date, 4);
-      } else if (x === -32) {
-        explodeRight(bomb.x + x, bomb.y + y, bomb, room, date, 4);
-      }
-      if (y === 32) {
-        explodeUp(bomb.x + x, bomb.y + y, bomb, room, date, 4);
-      } else if (y === -32) {
-        explodeDown(bomb.x + x, bomb.y + y, bomb, room, date, 4);
-      }
+      x === 32 ? explodeDirection(bomb.x + x, bomb.y + y, bomb, room, date, 4, "left") :
+        x === -32 ? explodeDirection(bomb.x + x, bomb.y + y, bomb, room, date, 4, "right") : null;
+
+      y === 32 ? explodeDirection(bomb.x + x, bomb.y + y, bomb, room, date, 4, "up") :
+        y === -32 ? explodeDirection(bomb.x + x, bomb.y + y, bomb, room, date, 4, "down") : null;
+
     }
   });
-  //part 2
-  if (isExplosion(bomb.x + 16, bomb.y + 32, room)) {
-    explodeLeft(bomb.x + 16, bomb.y + 32, bomb, room, date, 3);
-    explodeRight(bomb.x + 16, bomb.y + 32, bomb, room, date, 1);
-    explodeUp(bomb.x + 16, bomb.y + 32, bomb, room, date, 4);
-  }
-  if (isExplosion(bomb.x + 16, bomb.y - 32, room)) {
-    explodeRight(bomb.x + 16, bomb.y - 32, bomb, room, date, 1);
-    explodeLeft(bomb.x + 16, bomb.y - 32, bomb, room, date, 3);
-    explodeDown(bomb.x + 16, bomb.y - 32, bomb, room, date, 4);
-  }
-  if (isExplosion(bomb.x - 16, bomb.y + 32, room)) {
-    explodeUp(bomb.x - 16, bomb.y + 32, bomb, room, date, 4);
-    explodeLeft(bomb.x - 16, bomb.y + 32, bomb, room, date, 1);
-    explodeRight(bomb.x - 16, bomb.y + 32, bomb, room, date, 3);
-  }
-  if (isExplosion(bomb.x - 16, bomb.y - 32, room)) {
-    explodeDown(bomb.x - 16, bomb.y - 32, bomb, room, date, 4);
-    explodeLeft(bomb.x - 16, bomb.y - 32, bomb, room, date, 1);
-    explodeRight(bomb.x - 16, bomb.y - 32, bomb, room, date, 3);
-  }
-  if (isExplosion(bomb.x + 32, bomb.y + 16, room)) {
-    explodeUp(bomb.x + 32, bomb.y + 16, bomb, room, date, 3);
-    explodeDown(bomb.x + 32, bomb.y + 16, bomb, room, date, 1);
-    explodeLeft(bomb.x + 32, bomb.y + 16, bomb, room, date, 4);
-  }
-  if (isExplosion(bomb.x + 32, bomb.y - 16, room)) {
-    explodeUp(bomb.x + 32, bomb.y - 16, bomb, room, date, 1);
-    explodeDown(bomb.x + 32, bomb.y - 16, bomb, room, date, 3);
-    explodeLeft(bomb.x + 32, bomb.y - 16, bomb, room, date, 4);
-  }
-  if (isExplosion(bomb.x - 32, bomb.y + 16, room)) {
-    explodeUp(bomb.x - 32, bomb.y + 16, bomb, room, date, 3);
-    explodeDown(bomb.x - 32, bomb.y + 16, bomb, room, date, 1);
-    explodeRight(bomb.x - 32, bomb.y + 16, bomb, room, date, 4);
-  }
-  if (isExplosion(bomb.x - 32, bomb.y - 16, room)) {
-    explodeUp(bomb.x - 32, bomb.y - 16, bomb, room, date, 1);
-    explodeDown(bomb.x - 32, bomb.y - 16, bomb, room, date, 3);
-    explodeRight(bomb.x - 32, bomb.y - 16, bomb, room, date, 4);
-  }
-  console.log(room.explosions);
+  //Explosion aux extrémité de la bombe
+  const directions = [
+    { x: 16, y: 32, puissance: [3, 1, 4], sides: ["left", "right", "up"] },
+    { x: 16, y: -32, puissance: [3, 1, 4], sides: ["left", "right", "down"] },
+    { x: -16, y: 32, puissance: [3, 1, 4], sides: ["right", "left", "up"] },
+    { x: -16, y: -32, puissance: [3, 1, 4], sides: ["right", "left", "down"] },
+    { x: 32, y: 16, puissance: [3, 1, 4], sides: ["up", "down", "left"] },
+    { x: 32, y: -16, puissance: [3, 1, 4], sides: ["down", "up", "left"] },
+    { x: -32, y: 16, puissance: [3, 1, 4], sides: ["up", "down", "right"] },
+    { x: -32, y: -16, puissance: [3, 1, 4], sides: ["down", "up", "right"] }
+  ];
+
+  directions.forEach((direction) => {
+    if (isExplosion(bomb.x + direction.x, bomb.y + direction.y, room)) {
+      direction.puissance.forEach((p, index) => {
+        if (direction.sides && direction.sides.length > index) {
+          explodeDirection(bomb.x + direction.x, bomb.y + direction.y, bomb, room, date, p, direction.sides[index]);
+        }
+      });
+    }
+  });
+
 }
 
 function isExplosion(x, y, room) {
