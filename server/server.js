@@ -1,7 +1,9 @@
 import http from "http";
 import express from "express";
 import { Server } from "socket.io";
-
+import Bomb from "./bomb.js";
+import Explosion from "./explosion.js";
+import Wall from "./wall.js";
 //calculer le temps d'import
 
 import {
@@ -125,7 +127,7 @@ io.on("connection", (socket) => {
     });
   });
 
-  //Add bomb
+  // Ajouter une bombe
   socket.on("addBomb", (data) => {
     let roomName = data.room;
     if (
@@ -147,6 +149,7 @@ io.on("connection", (socket) => {
     let bombRange = rooms[roomName].players[socket.id].bombRange;
     let bombType = rooms[roomName].players[socket.id].bombType;
 
+    // Propriétés de la bombe
     if (rooms[roomName].players[socket.id].bombType == 2) {
       timeToExplode = -1;
     } else if (rooms[roomName].players[socket.id].bombType == 4) {
@@ -191,7 +194,7 @@ io.on("connection", (socket) => {
   //--------------------Paramètres--------------------
 
   socket.on("changeMap", (param, roomName) => {
-    console.log(roomName);
+    if (!rooms[roomName]) return;
     let user = rooms[roomName].players[socket.id];
     if (user.admin) {
       let newIndex =
@@ -205,29 +208,20 @@ io.on("connection", (socket) => {
       } else {
         rooms[roomName].roomData.mapParameter = MAPS[newIndex];
       }
+      let mapParameter = rooms[roomName].roomData.mapParameter;
       //a mettre au start !!!!!!!!!
       rooms[roomName].walls = generateWallsIndestructible(
-        rooms[roomName].roomData.mapParameter.generatioWall
+        mapParameter.generatioWall
       );
-      // rooms[roomName].walls = generateWallsDestructible(
-      //   rooms[roomName].roomData.mapParameter.generatioWall
-      // );
       rooms[roomName].walls.push(
-        generateWallsDestructible(
-          rooms[roomName].roomData.mapParameter.generatioWall,
-          roomName
-        )
+        generateWallsDestructible(mapParameter.generatioWall, roomName)
       );
       rooms[roomName].walls = rooms[roomName].walls.flat();
 
       io.to(roomName).emit("addWalls", rooms[roomName].walls);
 
       //send to everyone
-      io.to(roomName).emit(
-        "changeMap",
-        rooms[roomName].roomData.mapParameter,
-        newIndex
-      );
+      io.to(roomName).emit("changeMap", mapParameter, newIndex);
     }
   });
 
@@ -262,7 +256,6 @@ io.on("connection", (socket) => {
           io.to(newAdmin).emit("isAdmin", true);
         }
 
-        // Envoyer les informations de déconnexion au autres joueurs
         socket.broadcast.emit("removeCharacter", socket.id);
 
         // On supprime le joueur de la room
@@ -279,60 +272,52 @@ io.on("connection", (socket) => {
           delete rooms[roomName];
         } else {
           // Si il y a plus de 2 joueurs dans la room, on active le bouton de lancement de partie
-          if (Object.keys(room.players).length >= 2) {
-            adminStartBtn(true, roomName);
-          } else {
-            adminStartBtn(false, roomName);
-          }
+          Object.keys(room.players).length >= 2
+            ? adminStartBtn(true, roomName)
+            : adminStartBtn(false, roomName);
         }
       }
     });
   });
 });
 
-/*--------------------------BOMB------------------------------- */
+/*--------------------------BOUTON START------------------------------- */
 
-class Bomb {
-  constructor(x, y, id, bombType, bombRange, timeToExplode, user) {
-    this.id = id;
-    this.x = x;
-    this.y = y;
-    this.width = 16;
-    this.height = 16;
-    this.owner = user;
-    //this.owner = owner;
-    this.timePlaced = Date.now();
-    this.timeToExplode = timeToExplode;
-    this.bombType = bombType;
-    this.bombRange = bombRange;
-  }
-}
-
-const adminStartBtn = (isBtn, room) => {
+const adminStartBtn = (isBtn, roomName) => {
   //recuperer l'index du joueur qui est admin
-  let index = Object.keys(rooms[room].players).find(
-    (key) => rooms[room].players[key].admin
+  let index = Object.keys(rooms[roomName].players).find(
+    (key) => rooms[roomName].players[key].admin
   );
   // Envoyer les informations d'Admin
-  if (rooms[room].players[index].admin) {
+  if (rooms[roomName].players[index].admin) {
     io.to(index).emit("adminBtn", isBtn);
   }
 };
 /*--------------------------Explosion------------------------------- */
 
 function createExplosion(x, y, type, room, date) {
-  const newExplosion = {
+  let newExplosion = new Explosion(
     x,
     y,
     type,
-    id: room.roomData.nextExplosionId,
-    date: date,
-  };
-  // ajout de l'objet explosion à la variable explosions
+    room.roomData.nextExplosionId,
+    date
+  );
+  // Ajout de l'explosion dans la room
   room.explosions[room.roomData.nextExplosionId] = newExplosion;
-  // Met à jour la variable nextExplosionId de la salle pour la prochaine explosion
   room.roomData.nextExplosionId++;
 }
+
+function collideBomb(x, y, room) {
+  for (const bombId in room.bombs) {
+    const bomb = room.bombs[bombId];
+    if (x == bomb.x && y == bomb.y) {
+      bomb.timeToExplode = 0;
+    }
+  }
+}
+
+/*--------------------------WALL------------------------------- */
 
 function collideWall2(x, y, wall) {
   for (let id = 0; id < wall.length; id++) {
@@ -362,17 +347,6 @@ function collideWallIndestructible(x, y, room) {
   }
   return false;
 }
-
-function collideBomb(x, y, room) {
-  for (const bombId in room.bombs) {
-    const bomb = room.bombs[bombId];
-    if (x == bomb.x && y == bomb.y) {
-      bomb.timeToExplode = 0;
-    }
-  }
-}
-
-/*--------------------------WALL------------------------------- */
 
 function getRandomArbitrary(min, max) {
   return Math.random() * (max - min) + min;
@@ -412,6 +386,8 @@ function wallDestructible(x, y, room) {
   }
 }
 
+/*--------------------------GENERATE WALL------------------------------- */
+
 function isPlayerStart(x, y) {
   for (let player in PLAYERSTARTPOSITIONS) {
     for (let position of PLAYERSTARTPOSITIONS[player]) {
@@ -434,49 +410,35 @@ function isPlayerStart2(x, y) {
   return false;
 }
 
-function isCenterObjects(x, y) {
-  for (let centerObject of CENTEROBJECTS) {
-    if (x == centerObject.x && y == centerObject.y) {
+function isObject(x, y, type) {
+  for (let object of type) {
+    if (x == object.x && y == object.y) {
       return true;
     }
   }
   return false;
 }
 
-function isCarpet(x, y) {
-  for (let carpet of CARPET) {
-    if (x == carpet.x && y == carpet.y) {
-      return true;
+function generateWallSquare() {
+  let walls = [];
+  for (let i = 0; i < 2; i++) {
+    for (let y = 0; y < 144; y += 16) {
+      for (let x = 0; x < 240; x += 16) {
+        const wall = new Wall(x, y + i * 192, true);
+        if (
+          x > 16 &&
+          x < 208 &&
+          y + i * 192 > 16 + i * 192 &&
+          y + i * 192 < 112 + i * 192
+        ) {
+          continue; // Si oui, passe au carré suivant
+        }
+        if (!isPlayerStart(x + MAP.startLeft, y + MAP.startTop + i * 192))
+          walls.push(wall);
+      }
     }
   }
-  return false;
-}
-
-function isTrapdoor(x, y) {
-  for (let trapdoor of TRAPDOOR) {
-    if (x == trapdoor.x && y == trapdoor.y) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function isArrowInTheGround(x, y) {
-  for (let arrow of ARROWGROUND1) {
-    if (x == arrow.x && y == arrow.y) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function isBalancoire(x, y) {
-  for (let balancoire of BALANCOIRE) {
-    if (x == balancoire.x && y == balancoire.y) {
-      return true;
-    }
-  }
-  return false;
+  return walls;
 }
 
 // Generate walls
@@ -484,6 +446,7 @@ function generateWallsDestructible(generatewall, room) {
   console.log(generatewall);
   let walls = [];
   let wallTotal = 182;
+  // Nombre de murs destructibles
   if (generatewall === 2) {
     wallTotal = wallTotal - CENTEROBJECTS.length;
   } else if (generatewall === 3) {
@@ -498,29 +461,7 @@ function generateWallsDestructible(generatewall, room) {
     wallTotal = 0;
   } else if (generatewall === 8) {
     wallTotal = 0;
-    for (let i = 0; i < 2; i++) {
-      for (let y = 0; y < 144; y += 16) {
-        for (let x = 0; x < 240; x += 16) {
-          const wall = {
-            x: x + MAP.startLeft,
-            y: y + MAP.startTop + i * 192,
-            width: 16,
-            height: 16,
-            destructible: true,
-          };
-          if (
-            x > 16 &&
-            x < 208 &&
-            y + i * 192 > 16 + i * 192 &&
-            y + i * 192 < 112 + i * 192
-          ) {
-            continue; // Si oui, passe au carré suivant
-          }
-          if (!isPlayerStart(x + MAP.startLeft, y + MAP.startTop + i * 192))
-            walls.push(wall);
-        }
-      }
-    }
+    walls = generateWallSquare();
   } else if (generatewall === 9) {
     wallTotal = wallTotal / 2;
   } else if (generatewall === 10) {
@@ -529,16 +470,13 @@ function generateWallsDestructible(generatewall, room) {
 
   const randomRatioWall = getRandomArbitrary(0.65, 0.8);
   const wallDestructible = Math.floor(wallTotal * randomRatioWall);
+
   while (walls.length < wallDestructible) {
-    const x = random(0, 14) * 16 + MAP.startLeft;
-    const y = random(0, 20) * 16 + MAP.startTop;
-    const wall = {
-      x,
-      y,
-      width: 16,
-      height: 16,
-      destructible: true,
-    };
+    let x = random(0, 14) * 16;
+    let y = random(0, 20) * 16;
+    const wall = new Wall(x, y, true);
+    x = x + MAP.startLeft;
+    y = y + MAP.startTop;
     if (
       !collideWall(x, y, rooms[room]) &&
       y != 144 + MAP.startTop &&
@@ -547,18 +485,18 @@ function generateWallsDestructible(generatewall, room) {
       !isPlayerStart(x, y) &&
       !collideWall2(x, y, walls)
     ) {
-      if (generatewall === 2 && !isCenterObjects(x, y)) {
+      if (generatewall === 2 && !isObject(x, y, CENTEROBJECTS)) {
         walls.push(wall);
-      } else if (generatewall === 3 && !isCarpet(x, y)) {
+      } else if (generatewall === 3 && !isObject(x, y, CARPET)) {
         walls.push(wall);
-      } else if (generatewall === 4 && !isTrapdoor(x, y)) {
+      } else if (generatewall === 4 && !isObject(x, y, TRAPDOOR)) {
         walls.push(wall);
-      } else if (generatewall === 6 && !isBalancoire(x, y)) {
+      } else if (generatewall === 6 && !isObject(x, y, BALANCOIRE)) {
         walls.push(wall);
       } else if (
         generatewall === 5 &&
-        !isArrowInTheGround(x, y) &&
-        !isCenterObjects(x, y)
+        !isObject(x, y, ARROWGROUND1) &&
+        !isObject(x, y, CENTEROBJECTS)
       ) {
         walls.push(wall);
       } else if (
@@ -566,7 +504,7 @@ function generateWallsDestructible(generatewall, room) {
         generatewall === 16 ||
         generatewall === 17 ||
         generatewall === 10 ||
-        generatewall === 11 //pas oublier les spikes
+        generatewall === 11
       ) {
         walls.push(wall);
       } else if (
@@ -587,7 +525,6 @@ function generateWallsDestructible(generatewall, room) {
         // walls.push(wall);
         //console.log(x, y);
       }
-      //rooms[room].walls.push(wall);
     }
   }
   walls.sort((a, b) => a.y - b.y);
