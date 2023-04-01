@@ -13,6 +13,7 @@ import {
   PLAYERSTARTPOSITIONS,
   CENTEROBJECTS,
   CARPET,
+  CARPET2,
   TRAPDOOR,
   ARROWGROUND1,
   BALANCOIRE,
@@ -41,7 +42,8 @@ io.on("connection", (socket) => {
 
     // Création d'une nouvelle room
     if (!rooms[roomName]) {
-      rooms[roomName] = ROOMDEFAULT;
+      rooms[roomName] = { ...ROOMDEFAULT };
+      rooms[roomName].roomData.mapParameter = MAPS[0];
       rooms[roomName].roomData.roomName = roomName;
     }
 
@@ -441,6 +443,9 @@ function generateWallsDestructible(generatewall, room) {
     7: 182,
     8: 182,
     9: 91,
+    12: 60,
+    13: 60,
+    14: 90,
   };
   // si generatewall est dans valuesToSubtract, on soustrait la valeur correspondante
   if (valuesToSubtract[generatewall])
@@ -463,24 +468,23 @@ function generateWallsDestructible(generatewall, room) {
 
     const isCenterObject = isObject(x, y, CENTEROBJECTS);
     const isArrowGround = isObject(x, y, ARROWGROUND1);
-    const allowedValues = [1, 10, 11, 12, 13, 14, 15, 16, 17];
+    const allowedValues = [1, 10, 11, 15, 16, 17];
     if (
-      ![144, 160, 176].includes(y) &&
-      !isPlayerStart(x, y, PLAYERSTARTPOSITIONS) &&
-      !collideWallGenerate(x, y, rooms[room].walls) &&
-      !collideWallGenerate(x, y, walls)
-    ) {
-      if (
-        allowedValues.includes(generatewall) ||
+      (![144, 160, 176].includes(y) &&
+        !isPlayerStart(x, y, PLAYERSTARTPOSITIONS) &&
+        !collideWallGenerate(x, y, rooms[room].walls) &&
+        !collideWallGenerate(x, y, walls)) &&
+      (allowedValues.includes(generatewall) ||
         (generatewall === 2 && !isCenterObject) ||
         (generatewall === 3 && !isObject(x, y, CARPET)) ||
         (generatewall === 4 && !isObject(x, y, TRAPDOOR)) ||
         (generatewall === 5 && !isArrowGround && !isCenterObject) ||
         (generatewall === 6 && !isObject(x, y, BALANCOIRE)) ||
-        (generatewall === 9 && y <= 144 && !isPlayerStart(x, y, PLAYERSTARTPOSITIONSMINI))
-      ) {
-        walls.push(wall);
-      }
+        (generatewall === 9 && y <= 144 && !isPlayerStart(x, y, PLAYERSTARTPOSITIONSMINI)) ||
+        ((generatewall === 12 || generatewall === 13) && y <= 224 && y >= 32) ||
+        (generatewall === 14 && y <= 224 && !isObject(x, y, CARPET2)))
+    ) {
+      walls.push(wall);
     }
   }
   walls.sort((a, b) => a.y - b.y);
@@ -578,7 +582,6 @@ function generateItem(room, x, y) {
     start = end;
   }
   const item = { x, y, type, };
-  console.log(item);
   room.items[room.roomData.nextItemId] = item;
 
   //envoyer les nouveaux items aux joueurs

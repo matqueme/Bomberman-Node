@@ -238,7 +238,7 @@ export const ROOMDEFAULT = {
   roomData: {
     roomName: "",
     maxPlayers: 8,
-    mapParameter: MAPS[0],
+    mapParameter: "",
     gameStarted: false,
     nextBombId: 0,
     nextExplosionId: 0,
@@ -477,12 +477,7 @@ export const CENTEROBJECTS = [
   { x: MAP.endRight - 64, y: MAP.endBottom - 112 },
 ];
 
-export const CARPET = [
-  {
-    x: 0,
-    y: 0,
-  },
-];
+export const CARPET = [];
 
 for (let i = 0; i < 16; i++) {
   CARPET.push({
@@ -548,7 +543,6 @@ for (let i = 0; i < 4; i++) {
   });
 }
 
-//
 for (let i = 0; i < 6; i++) {
   CARPET.push({
     x: MAP.startLeft + 64 + i * 16,
@@ -578,6 +572,72 @@ for (let i = 0; i < 4; i++) {
     x: MAP.endRight - 80,
     y: MAP.startTop + 64 + 128 + i * 16,
     type: "down",
+  });
+}
+
+export const CARPET2 = [];
+
+for (let i = 0; i < 2; i++) {
+  CARPET2.push({
+    x: MAP.startLeft,
+    y: MAP.startTop + 16 + i * 16,
+    type: "up",
+  });
+}
+
+for (let i = 0; i < 2; i++) {
+  CARPET2.push({
+    x: MAP.endRight - 16,
+    y: MAP.startTop + i * 16,
+    type: "down",
+  });
+}
+
+for (let i = 0; i < 15; i++) {
+  CARPET2.push({
+    x: MAP.startLeft + i * 16,
+    y: MAP.startTop,
+    type: "right",
+  });
+}
+
+for (let i = 0; i < 15; i++) {
+  CARPET2.push({
+    x: MAP.startLeft + 16 + i * 16,
+    y: MAP.startTop + 32,
+    type: "left",
+  });
+}
+
+for (let i = 0; i < 2; i++) {
+  CARPET2.push({
+    x: MAP.startLeft + 32,
+    y: MAP.startTop + 80 + i * 16,
+    type: "up",
+  });
+}
+
+for (let i = 0; i < 2; i++) {
+  CARPET2.push({
+    x: MAP.endRight - 48,
+    y: MAP.startTop + 64 + i * 16,
+    type: "down",
+  });
+}
+
+for (let i = 0; i < 11; i++) {
+  CARPET2.push({
+    x: MAP.startLeft + 16 + i * 16,
+    y: MAP.startTop + 64,
+    type: "right",
+  });
+}
+
+for (let i = 0; i < 11; i++) {
+  CARPET2.push({
+    x: MAP.startLeft + 32 + i * 16,
+    y: MAP.startTop + 96,
+    type: "left",
   });
 }
 

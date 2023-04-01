@@ -30,8 +30,8 @@ wallUnbreakableImage.src = "img/map/unbreakableWall-1.png";
 const bombSprite = new Image();
 bombSprite.src = "img/sprite-bombe.png";
 
-const itemSprite = new Image();
-itemSprite.src = "img/sprite-item.png";
+const itemsSprite = new Image();
+itemsSprite.src = "img/sprite-item.png";
 
 const wallSprite = new Image();
 wallSprite.src = "img/walls.png";
@@ -238,6 +238,7 @@ const addItem = (param, id) => {
   const newItem = {
     x: param.x,
     y: param.y,
+    type: param.type,
   };
   items[id] = newItem;
 };
@@ -345,13 +346,32 @@ function drawWalls() {
       ctx.drawImage(
         wallSprite,
         0,
+        20 * roomData.mapParameter.wallType - 20 + 4,
+        16,
+        16,
+        wall.x,
+        wall.y,
+        wall.width,
+        wall.height
+      );
+  }
+}
+
+function drawWallsUp() {
+  for (let i = 0; i < walls.length; i++) {
+    // afficher avec des sprites plutot que des rectangles de bombSprite
+    let wall = walls[i];
+    wall.destructible &&
+      ctx.drawImage(
+        wallSprite,
+        0,
         20 * roomData.mapParameter.wallType - 20,
         16,
-        20,
+        4,
         wall.x,
         wall.y - 4,
         wall.width,
-        wall.height + 4
+        4
       );
   }
 }
@@ -388,13 +408,27 @@ function drawBombs() {
 
 function drawItems() {
   for (const id in items) {
-    ctx.fillStyle = "green";
     const item = items[id];
-    ctx.fillRect(item.x, item.y, 16, 16);
-    //mettre en gras
-    ctx.font = "bold 8px Arial";
-    ctx.fillStyle = "black";
-    ctx.fillText("I", item.x + 5, item.y + 10);
+    const itemTypes = {
+      fire: 1,
+      fireMax: 2,
+      fireLow: 3,
+      speed: 4,
+      slow: 5,
+      bomb: 6,
+      bombLess: 7,
+    };
+    ctx.drawImage(
+      itemsSprite,
+      16 * itemTypes[item.type] - 16,
+      0,
+      16,
+      16,
+      item.x,
+      item.y - 4,
+      16,
+      16
+    );
   }
 }
 
@@ -410,12 +444,13 @@ function drawCarpet() {
 function drawGame() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawCarpet();
+  drawWalls();
   drawItems();
   drawBombs();
   drawExplosions();
   drawCharacters();
-  drawWalls();
-  //ctx.drawImage(wallUnbreakableImage, 0, 0, 256, 384);
+  drawWallsUp();
+  ctx.drawImage(wallUnbreakableImage, 0, 0, 256, 384);
 }
 
 /*--------------------------MOUVEMENT DU PERSONNAGE--------------------------- */
