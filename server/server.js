@@ -18,6 +18,7 @@ import {
   ARROWGROUND1,
   BALANCOIRE,
   PLAYERSTARTPOSITIONSMINI,
+  ARROWGROUND2,
 } from "./const.js";
 
 const app = express();
@@ -74,9 +75,10 @@ io.on("connection", (socket) => {
       alive: true,
       admin: Object.keys(rooms[roomName].players).length == 0,
       playerNumber: smallestPlayerNumber,
-      bombType: 7,
-      bombMax: 4,
-      bombRange: 3,
+      bombType: 1,
+      bombMax: 1,
+      bombRange: 1,
+      speed: 1,
     };
 
     if (Object.keys(rooms[roomName].players).length >= 2) {
@@ -112,19 +114,20 @@ io.on("connection", (socket) => {
   }); //envoie un message a tt le monde meme l'utilisateur
 
   //CHANGE LE JOUEUR -------------------
-  socket.on("changePlayerNumber", (param) => { });
+  socket.on("changePlayerNumber", (param) => {});
 
   socket.on("updateCharacterPosition", (data) => {
     let roomName = data.roomName;
     // Mettre à jour la position du joueur
     rooms[roomName].players[socket.id].x = data.x;
     rooms[roomName].players[socket.id].y = data.y;
-
+    rooms[roomName].players[socket.id].lastMove = Date.now();
     // Envoyer les informations de mise à jour a tout les joueurs
     io.emit("updateCharacterPosition", {
       id: socket.id,
       x: data.x,
       y: data.y,
+      lastMove: Date.now(),
     });
   });
 
@@ -261,7 +264,8 @@ io.on("connection", (socket) => {
 
         // On supprime le joueur de la room
         console.log(
-          `Le joueur "${room.players[socket.id].name
+          `Le joueur "${
+            room.players[socket.id].name
           }" a été supprimé de la room "${roomName}"`
         );
         delete room.players[socket.id];
@@ -445,7 +449,8 @@ function generateWallsDestructible(generatewall, room) {
     9: 91,
     12: 60,
     13: 60,
-    14: 90,
+    14: 60 + CARPET2.length,
+    15: ARROWGROUND2.length,
   };
   // si generatewall est dans valuesToSubtract, on soustrait la valeur correspondante
   if (valuesToSubtract[generatewall])
@@ -468,21 +473,24 @@ function generateWallsDestructible(generatewall, room) {
 
     const isCenterObject = isObject(x, y, CENTEROBJECTS);
     const isArrowGround = isObject(x, y, ARROWGROUND1);
-    const allowedValues = [1, 10, 11, 15, 16, 17];
+    const allowedValues = [1, 10, 11, 16, 17];
     if (
-      (![144, 160, 176].includes(y) &&
-        !isPlayerStart(x, y, PLAYERSTARTPOSITIONS) &&
-        !collideWallGenerate(x, y, rooms[room].walls) &&
-        !collideWallGenerate(x, y, walls)) &&
+      ![144, 160, 176].includes(y) &&
+      !isPlayerStart(x, y, PLAYERSTARTPOSITIONS) &&
+      !collideWallGenerate(x, y, rooms[room].walls) &&
+      !collideWallGenerate(x, y, walls) &&
       (allowedValues.includes(generatewall) ||
         (generatewall === 2 && !isCenterObject) ||
         (generatewall === 3 && !isObject(x, y, CARPET)) ||
         (generatewall === 4 && !isObject(x, y, TRAPDOOR)) ||
         (generatewall === 5 && !isArrowGround && !isCenterObject) ||
         (generatewall === 6 && !isObject(x, y, BALANCOIRE)) ||
-        (generatewall === 9 && y <= 144 && !isPlayerStart(x, y, PLAYERSTARTPOSITIONSMINI)) ||
+        (generatewall === 9 &&
+          y <= 144 &&
+          !isPlayerStart(x, y, PLAYERSTARTPOSITIONSMINI)) ||
         ((generatewall === 12 || generatewall === 13) && y <= 224 && y >= 32) ||
-        (generatewall === 14 && y <= 224 && !isObject(x, y, CARPET2)))
+        (generatewall === 14 && y <= 224 && !isObject(x, y, CARPET2)) ||
+        (generatewall === 15 && !isObject(x, y, ARROWGROUND2)))
     ) {
       walls.push(wall);
     }
@@ -581,7 +589,7 @@ function generateItem(room, x, y) {
     }
     start = end;
   }
-  const item = { x, y, type, };
+  const item = { x, y, type };
   room.items[room.roomData.nextItemId] = item;
 
   //envoyer les nouveaux items aux joueurs
@@ -592,7 +600,40 @@ function generateItem(room, x, y) {
   );
 
   room.roomData.nextItemId++;
+}
 
+function onItem(room) {
+  for (const playerId in room.players) {
+    const player = room.players[playerId];
+    for (const itemId in room.items) {
+      const item = room.items[itemId];
+      if (isColliding(player, item)) {
+        if (item.type === "fire") {
+          player.bombRange !== 10 && player.bombRange++;
+        } else if (item.type === "fireMax") {
+          player.bombRange = 10;
+        } else if (item.type === "fireLow") {
+          player.bombRange !== 1 && player.bombRange--;
+        } else if (item.type === "speed") {
+          player.speed !== 5 && player.speed++;
+          //envoyer juste au player concerner la nouvelle vitesse
+          io.to(playerId).emit("updateSpeed", player.speed, playerId);
+        } else if (item.type === "slow") {
+          player.speed !== 1 && player.speed--;
+          io.to(playerId).emit("updateSpeed", player.speed, playerId);
+        } else if (item.type === "bomb") {
+          player.bombMax++;
+        } else if (item.type === "bombLess") {
+          player.bombMax !== 1 && player.bombMax--;
+        }
+
+        //on supprime l'item
+        delete room.items[itemId];
+        io.to(room.roomData.roomName).emit("itemPicked", itemId);
+        //send new stats
+      }
+    }
+  }
 }
 
 /*-------------------------------BOUCLE INFINI-------------------------------*/
@@ -602,6 +643,7 @@ function gameLoop() {
     updateBombs(room);
     updateExplosions(room);
     updateWallDestroy(room);
+    onItem(room);
   }
 
   // Répéter la boucle de jeu
@@ -609,6 +651,17 @@ function gameLoop() {
 }
 
 gameLoop();
+
+/*--------------------------EXPLOSION------------------------------- */
+
+const isColliding = (player, type) => {
+  return (
+    player.x < type.x + 8 &&
+    player.x + 8 > type.x &&
+    player.y < type.y + 8 &&
+    player.y + 8 > type.y
+  );
+};
 
 function updateBombs(room) {
   for (const bombId in room.bombs) {
@@ -625,10 +678,42 @@ function updateBombs(room) {
       if (bomb.bombType === 7) {
         explosionDangerouse(bomb, room, date);
       } else {
-        explodeDirection(bomb.x, bomb.y, bomb, room, date, bomb.bombRange, "up");
-        explodeDirection(bomb.x, bomb.y, bomb, room, date, bomb.bombRange, "down");
-        explodeDirection(bomb.x, bomb.y, bomb, room, date, bomb.bombRange, "left");
-        explodeDirection(bomb.x, bomb.y, bomb, room, date, bomb.bombRange, "right");
+        explodeDirection(
+          bomb.x,
+          bomb.y,
+          bomb,
+          room,
+          date,
+          bomb.bombRange,
+          "up"
+        );
+        explodeDirection(
+          bomb.x,
+          bomb.y,
+          bomb,
+          room,
+          date,
+          bomb.bombRange,
+          "down"
+        );
+        explodeDirection(
+          bomb.x,
+          bomb.y,
+          bomb,
+          room,
+          date,
+          bomb.bombRange,
+          "left"
+        );
+        explodeDirection(
+          bomb.x,
+          bomb.y,
+          bomb,
+          room,
+          date,
+          bomb.bombRange,
+          "right"
+        );
       }
 
       // Supprimer la bombe de la liste
@@ -653,13 +738,7 @@ function updateExplosions(room) {
     //si un joueur est sur une explosion
     for (const playerId in room.players) {
       const player = room.players[playerId];
-      if (
-        player.alive &&
-        player.x + 16 > explosion.x &&
-        player.x < explosion.x + 16 &&
-        player.y + 16 > explosion.y &&
-        player.y < explosion.y + 16
-      ) {
+      if (player.alive && isColliding(player, explosion)) {
         console.log(player.name + " est mort (Id : " + playerId + ")");
         player.alive = false;
         io.to(room.roomData.roomName).emit("playerDied", playerId);
@@ -683,7 +762,13 @@ function explodeDirection(x, y, bomb, room, date, range, direction) {
   for (let i = 1; i <= range; i++) {
     const posX = x + i * dx;
     const posY = y + i * dy;
-    if (posX < MAP.startLeft || posX >= MAP.endRight || posY < MAP.startTop || posY >= MAP.endBottom) break;
+    if (
+      posX < MAP.startLeft ||
+      posX >= MAP.endRight ||
+      posY < MAP.startTop ||
+      posY >= MAP.endBottom
+    )
+      break;
     if (bomb.bombType !== 3) {
       if (isWallDestroyed(posX, posY, room)) break;
       if (collideWall(posX, posY, room)) {
@@ -702,11 +787,18 @@ function explodeDirection(x, y, bomb, room, date, range, direction) {
 
 function explodeInDirectionDangerouse(x, y, room, date, direction) {
   for (let i = 1; i <= 2; i++) {
-    const dx = direction === "left" ? -i * 16 : direction === "right" ? i * 16 : 0;
+    const dx =
+      direction === "left" ? -i * 16 : direction === "right" ? i * 16 : 0;
     const dy = direction === "up" ? -i * 16 : direction === "down" ? i * 16 : 0;
     const posX = x + dx;
     const posY = y + dy;
-    if (posX < MAP.startLeft || posX >= MAP.endRight || posY < MAP.startTop || posY >= MAP.endBottom) break;
+    if (
+      posX < MAP.startLeft ||
+      posX >= MAP.endRight ||
+      posY < MAP.startTop ||
+      posY >= MAP.endBottom
+    )
+      break;
     if (isWallDestroyed(posX, posY, room)) break;
     if (collideWall(posX, posY, room)) {
       wallDestructible(posX, posY, room);
@@ -714,13 +806,28 @@ function explodeInDirectionDangerouse(x, y, room, date, direction) {
     }
     collideBomb(posX, posY, room);
     createExplosion(posX, posY, direction, room, date);
-    explodeDirection(posX, posY, { x, y }, room, date, 2, direction === "left" || direction === "right" ? "up" : "left");
-    explodeDirection(posX, posY, { x, y }, room, date, 2, direction === "left" || direction === "right" ? "down" : "right");
+    explodeDirection(
+      posX,
+      posY,
+      { x, y },
+      room,
+      date,
+      2,
+      direction === "left" || direction === "right" ? "up" : "left"
+    );
+    explodeDirection(
+      posX,
+      posY,
+      { x, y },
+      room,
+      date,
+      2,
+      direction === "left" || direction === "right" ? "down" : "right"
+    );
   }
 }
 
 function explosionDangerouse(bomb, room, date) {
-
   explodeInDirectionDangerouse(bomb.x, bomb.y, room, date, "up");
   explodeInDirectionDangerouse(bomb.x, bomb.y, room, date, "down");
   explodeInDirectionDangerouse(bomb.x, bomb.y, room, date, "left");
@@ -741,12 +848,17 @@ function explosionDangerouse(bomb, room, date) {
     // 3. If the bomb explodes at the current position, check if it explodes
     //    horizontally or vertically and call the corresponding function
     if (explosionDetected) {
-      x === 32 ? explodeDirection(bomb.x + x, bomb.y + y, bomb, room, date, 4, "left") :
-        x === -32 ? explodeDirection(bomb.x + x, bomb.y + y, bomb, room, date, 4, "right") : null;
+      x === 32
+        ? explodeDirection(bomb.x + x, bomb.y + y, bomb, room, date, 4, "left")
+        : x === -32
+        ? explodeDirection(bomb.x + x, bomb.y + y, bomb, room, date, 4, "right")
+        : null;
 
-      y === 32 ? explodeDirection(bomb.x + x, bomb.y + y, bomb, room, date, 4, "up") :
-        y === -32 ? explodeDirection(bomb.x + x, bomb.y + y, bomb, room, date, 4, "down") : null;
-
+      y === 32
+        ? explodeDirection(bomb.x + x, bomb.y + y, bomb, room, date, 4, "up")
+        : y === -32
+        ? explodeDirection(bomb.x + x, bomb.y + y, bomb, room, date, 4, "down")
+        : null;
     }
   });
   //Explosion aux extrémité de la bombe
@@ -758,19 +870,26 @@ function explosionDangerouse(bomb, room, date) {
     { x: 32, y: 16, puissance: [3, 1, 4], sides: ["up", "down", "left"] },
     { x: 32, y: -16, puissance: [3, 1, 4], sides: ["down", "up", "left"] },
     { x: -32, y: 16, puissance: [3, 1, 4], sides: ["up", "down", "right"] },
-    { x: -32, y: -16, puissance: [3, 1, 4], sides: ["down", "up", "right"] }
+    { x: -32, y: -16, puissance: [3, 1, 4], sides: ["down", "up", "right"] },
   ];
 
   directions.forEach((direction) => {
     if (isExplosion(bomb.x + direction.x, bomb.y + direction.y, room)) {
       direction.puissance.forEach((p, index) => {
         if (direction.sides && direction.sides.length > index) {
-          explodeDirection(bomb.x + direction.x, bomb.y + direction.y, bomb, room, date, p, direction.sides[index]);
+          explodeDirection(
+            bomb.x + direction.x,
+            bomb.y + direction.y,
+            bomb,
+            room,
+            date,
+            p,
+            direction.sides[index]
+          );
         }
       });
     }
   });
-
 }
 
 function isExplosion(x, y, room) {

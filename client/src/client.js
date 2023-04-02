@@ -1,4 +1,5 @@
 import Player from "./player.js";
+import Bomb from "./bomb.js";
 import { MAP } from "./const.js";
 import { HTMLADMIN } from "./const.js";
 import { HTMLPLAYER } from "./const.js";
@@ -219,7 +220,8 @@ const addBomb = (param) => {
     y: param.y,
     bombType: param.bombType,
   };
-  bombs[param.id] = newBomb;
+  let bomb = new Bomb(newBomb);
+  bombs[param.id] = bomb;
 };
 
 // Ajoute une explosion à notre partie
@@ -251,8 +253,33 @@ const startgame = (param) => {
 // Met à jour la position d'un joueur
 const updateCharacterPosition = (param) => {
   const character = characters[param.id];
+  character.lastMove = param.lastMove;
+
+  if (character.x > param.x && character.frameY != 5) {
+    character.frameY = 5;
+    character.frameCount = 6;
+    character.frameX = 0;
+  } else if (character.x < param.x && character.frameY != 6) {
+    character.frameY = 6;
+    character.frameCount = 6;
+    character.frameX = 0;
+  } else if (character.y > param.y && character.frameY != 7) {
+    character.frameY = 7;
+    character.frameCount = 6;
+    character.frameX = 0;
+  } else if (character.y < param.y && character.frameY != 4) {
+    character.frameY = 4;
+    character.frameCount = 6;
+    character.frameX = 0;
+  }
+
   character.x = param.x;
   character.y = param.y;
+};
+
+const updateSpeed = (speed, playerId) => {
+  const character = characters[playerId];
+  character.speed = speed;
 };
 
 const sock = io();
@@ -271,6 +298,8 @@ const sock = io();
   sock.on("addCharacter", addPlayer);
 
   sock.on("removeCharacter", removeCharacter);
+
+  sock.on("updateSpeed", updateSpeed);
 
   sock.on("changeMap", changeMap);
 
@@ -295,6 +324,10 @@ const sock = io();
   sock.on("explosionEnded", function (id) {
     delete explosions[id];
   }); // listen for an explosion to end
+
+  sock.on("itemPicked", function (id) {
+    delete items[id];
+  }); // listen for an item to be picked
 
   //-----------------------SEND-----------------------
   // Page de chat - Envoyer un message
@@ -332,8 +365,33 @@ const drawCharacters = () => {
   for (const id in characters) {
     const character = characters[id];
     if (character.alive) {
-      ctx.fillStyle = "red";
-      ctx.fillRect(character.x, character.y, 16, 16);
+      // ctx.fillStyle = "red";
+      // ctx.fillRect(character.x, character.y, 16, 16);
+      //drawimage
+
+      ctx.drawImage(
+        playerSprite[character.playerNumber - 1],
+        0,
+        0,
+        16,
+        16,
+        character.x,
+        character.y,
+        16,
+        16
+      );
+
+      ctx.drawImage(
+        playerSprite[character.playerNumber - 1],
+        0 + character.frameX * 20,
+        30 + character.frameY * 30,
+        20,
+        30,
+        character.x - 2,
+        character.y - 18,
+        20,
+        30
+      );
     }
   }
 };
@@ -394,8 +452,8 @@ function drawBombs() {
     const bomb = bombs[id];
     ctx.drawImage(
       bombSprite,
-      0,
-      16 * bomb.bombType - 16,
+      0 + 16 * bomb.frameX,
+      16 * bomb.frameY,
       16,
       16,
       bomb.x,
@@ -527,6 +585,7 @@ function movePlayer() {
 let updateTime = 0;
 let drawTime1 = 0;
 let moveCarpet = 0;
+let sprite = 0;
 
 function animate(currentTime) {
   // Calculer le temps écoulé depuis la dernière exécution de la fonction animate()
@@ -534,6 +593,20 @@ function animate(currentTime) {
   const deltaTime = currentTime - updateTime;
   const deltaTime2 = currentTime - drawTime1;
   const deltaTime3 = currentTime - moveCarpet;
+  const deltaTime4 = currentTime - sprite;
+
+  //update le sprite toutes les 100ms
+  if (deltaTime4 >= 150) {
+    for (const id in characters) {
+      const character = characters[id];
+      character.updateSprite();
+    }
+    for (const id in bombs) {
+      const bomb = bombs[id];
+      bomb.updateSprite();
+    }
+    sprite = currentTime;
+  }
 
   if (characters[sock.id]) {
     // Mettre à jour la position des utilisateurs toutes les 12ms

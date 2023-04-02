@@ -668,6 +668,27 @@ export const ARROWGROUND1 = [
   { x: MAP.endRight - 48, y: MAP.startTop + 256, type: "up" },
 ];
 
+export const ARROWGROUND2 = [
+  { x: MAP.startLeft + 160, y: MAP.startTop, type: "down" },
+  { x: MAP.startLeft + 64, y: MAP.startTop + 32, type: "down" },
+  { x: MAP.startLeft + 96, y: MAP.startTop + 32, type: "left" },
+  { x: MAP.startLeft + 192, y: MAP.startTop + 32, type: "right" },
+  { x: MAP.startLeft + 32, y: MAP.startTop + 64, type: "right" },
+  { x: MAP.startLeft + 128, y: MAP.startTop + 64, type: "down" },
+  { x: MAP.startLeft + 192, y: MAP.startTop + 64, type: "left" },
+  { x: MAP.startLeft + 64, y: MAP.startTop + 128, type: "down" },
+  { x: MAP.startLeft + 160, y: MAP.startTop + 128, type: "up" },
+  { x: MAP.startLeft + 32, y: MAP.startTop + 192, type: "down" },
+  { x: MAP.startLeft + 64, y: MAP.startTop + 192, type: "right" },
+  { x: MAP.startLeft + 128, y: MAP.startTop + 192, type: "down" },
+  { x: MAP.startLeft + 96, y: MAP.startTop + 240, type: "up" },
+  { x: MAP.startLeft + 96, y: MAP.startTop + 272, type: "up" },
+  { x: MAP.startLeft + 224, y: MAP.startTop + 272, type: "left" },
+  { x: MAP.startLeft + 32, y: MAP.startTop + 288, type: "right" },
+  { x: MAP.startLeft + 160, y: MAP.startTop + 288, type: "up" },
+  { x: MAP.startLeft + 192, y: MAP.startTop + 288, type: "left" },
+];
+
 export const BALANCOIRE = [
   { x: MAP.startLeft + 0, y: MAP.startTop + 32 },
   { x: MAP.startLeft + 32, y: MAP.startTop + 32 },

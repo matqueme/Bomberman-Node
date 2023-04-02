@@ -20,10 +20,11 @@ class Player {
     this.height = PLAYER.heightPlayer;
 
     /*DISPLAY PARAMETER*/
-    this.frameX = param.frameX; // position de la frame X
-    this.frameY = param.frameY; // position de la frame y
-    this.frameCount = param.frameCount; // nombre de frame pour l'animation
-    this.moving = param.moving; //si il bouge
+    this.frameX = 0; // position de la frame X
+    this.frameY = 0; // position de la frame y
+    this.frameCount = 3; // nombre de frame pour l'animation
+    /*LAST MOVE*/
+    this.lastMove = 0;
 
     /*HITBOX*/
     this.hitboxX = param.hitboxX; // position de la hitbox largeur
@@ -31,15 +32,12 @@ class Player {
     this.hitboxWH = param.hitboxWH; //  hitbox en longeur/largeur
 
     /*SPEED*/
-    this.speed = 1; //vitesse de déplacement
-
-    /*LAST MOVE*/
-    this.lastMove = 0;
+    this.speed = param.speed; //vitesse de déplacement
   }
 
   /*RETURN*/
   get getSpeed() {
-    //dictionnaire de la vitesse qui sera
+    //dictionnaire de la vitesse
     const speeds = {
       1: 16,
       2: 12,
@@ -58,6 +56,25 @@ class Player {
       width: this.width,
       height: this.height,
     };
+    //dernier mouvement
+    this.lastMove = Date.now();
+    if (this.x > nextBoundingBox.x && this.frameY !== 5) {
+      this.frameY = 5;
+      this.frameCount = 6;
+      this.frameX = 0;
+    } else if (this.x < nextBoundingBox.x && this.frameY !== 6) {
+      this.frameY = 6;
+      this.frameCount = 6;
+      this.frameX = 0;
+    } else if (this.y > nextBoundingBox.y && this.frameY !== 7) {
+      this.frameY = 7;
+      this.frameCount = 6;
+      this.frameX = 0;
+    } else if (this.y < nextBoundingBox.y && this.frameY !== 4) {
+      this.frameY = 4;
+      this.frameCount = 6;
+      this.frameX = 0;
+    }
 
     // Vérifiez la collision avec les murs pour les déplacements verticaux
     for (let wall of walls) {
@@ -184,118 +201,38 @@ class Player {
   }
 
   /*------------------------ANNIMATION ------------------------------ */
-  //pour placer la hitbox du joueur, tout les calculs se font en fonction de la hitbox
-  hitboxPlayer() {
-    this.hitboxX = this.x + 2; //calcul pour le positionement
-    this.hitboxY = this.y + 18; //calcul pour le positionement
-  }
-
-  //affiche le personnage sur la map
-  drawSprite(ctx, img) {
-    ctx.drawImage(
-      img,
-      0,
-      0,
-      this.hitboxWH / 4,
-      this.hitboxWH / 4,
-      this.hitboxX,
-      this.hitboxY,
-      this.hitboxWH,
-      this.hitboxWH
-    );
-    ctx.drawImage(
-      img,
-      this.frameX * PLAYER.width,
-      this.frameY * PLAYER.height,
-      PLAYER.width,
-      PLAYER.height,
-      this.x,
-      this.y,
-      PLAYER.width * 4,
-      PLAYER.height * 4
-    );
-  }
 
   //pour animation si il bouge ou pas
-  handlePlayerFrame() {
-    this.calculBoxPlayer();
-    //remmettre a 0
-    if (this.moving && this.frameX < 3) {
-      this.frameX = 3;
-    } else if (!this.moving && this.frameX > 3) {
-      this.frameX = 0;
+  updateSprite() {
+    if (this.lastMove < Date.now() - 50 && this.frameY > 3) {
+      this.frameY = this.frameY - 4;
+      this.frameCount = 3;
     }
-    //Faire bouger
-    if (this.frameX < this.frameCount - 1) {
-      this.frameX++;
-    } else {
-      if (this.moving) {
-        this.frameX = 3;
-      } else {
-        this.frameX = 0;
-      }
-    }
-  }
 
-  calculBoxPlayer() {
-    this.boxX = Math.round((this.x - 24) / (16 * 4));
-    this.boxY = Math.round((this.y - 56) / (16 * 4));
-    // console.log("x : ", this.boxX, "y : ", this.boxY);
+    if (this.frameX < this.frameCount - 1) this.frameX++;
+    else this.frameX = 0;
   }
 
   /*--------------------------MOUVEMENT DU PERSONNAGE--------------------------- */
 
-  //fonction pour deplacer le joueur
-  moveLeft() {
-    if (this.hitboxX > MAP.startLeft) {
-      this.x -= this.speed;
-    }
-    this.moveLeftAnimation();
-  }
-
-  moveRight() {
-    if (this.hitboxX + this.hitboxWH < MAP.endRight) {
-      this.x += this.speed;
-    }
-    this.moveRightAnimation();
-  }
-
-  moveUp() {
-    if (this.hitboxY > MAP.startUp) {
-      this.y -= this.speed;
-    }
-    this.moveUpAnimation();
-  }
-
-  moveDown() {
-    if (this.hitboxY + this.hitboxWH < MAP.endBottom) {
-      this.y += this.speed;
-    }
-    this.moveDownAnimation();
-  }
-
   /*----------------------------ANIMATION/AFFICHAGE------------------------------ */
   moveLeftAnimation() {
     this.frameY = 2;
-    this.moving = true;
     this.frameCount = 9;
   }
 
   moveRightAnimation() {
     this.frameY = 3;
-    this.moving = true;
     this.frameCount = 9;
   }
 
   moveUpAnimation() {
     this.frameY = 4;
-    this.moving = true;
     this.frameCount = 9;
   }
 
   moveDownAnimation() {
     this.frameY = 1;
-    this.moving = true;
     this.frameCount = 9;
   }
 
