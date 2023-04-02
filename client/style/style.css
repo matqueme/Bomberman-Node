@@ -276,6 +276,27 @@ input {
   text-align: center;
 }
 
+#username_form > svg {
+  width: 250%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate(-25%, -120%);
+}
+
+@media screen and (max-width: 500px) {
+  #username_form > svg {
+    width: 80vw;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: translate(-15%, -130%);
+  }
+}
+#username_form {
+  position: relative;
+}
+
 .param {
   display: flex;
   flex-direction: row;
