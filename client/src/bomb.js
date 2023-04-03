@@ -3,6 +3,7 @@ class Bomb {
     this.x = param.x;
     this.y = param.y;
     this.bombType = param.bombType;
+    this.propertie = "normal";
     this.frameX = 0; // position de la frame X
     this.frameY = param.bombType - 1; // position de la frame y
     if (
@@ -25,6 +26,11 @@ class Bomb {
   updateSprite() {
     if (this.frameX < this.frameCount - 1) this.frameX++;
     else this.frameX = 0;
+  }
+
+  move(dx, dy) {
+    this.x += dx;
+    this.y += dy;
   }
 }
 

@@ -4,6 +4,7 @@ import { Server } from "socket.io";
 import Bomb from "./bomb.js";
 import Explosion from "./explosion.js";
 import Wall from "./wall.js";
+import Player from "./player.js";
 //calculer le temps d'import
 
 import {
@@ -67,19 +68,14 @@ io.on("connection", (socket) => {
     }
 
     // Si il n'y a aucun joueur dans la room on le met en admin
-    rooms[roomName].players[socket.id] = {
-      id: socket.id,
-      name: param.name,
-      x: PLAYERSTARTPOSITIONS["player" + smallestPlayerNumber][0].x,
-      y: PLAYERSTARTPOSITIONS["player" + smallestPlayerNumber][0].y,
-      alive: true,
-      admin: Object.keys(rooms[roomName].players).length == 0,
-      playerNumber: smallestPlayerNumber,
-      bombType: 1,
-      bombMax: 1,
-      bombRange: 1,
-      speed: 1,
-    };
+    rooms[roomName].players[socket.id] = new Player(
+      socket.id,
+      param.name,
+      PLAYERSTARTPOSITIONS["player" + smallestPlayerNumber][0].x,
+      PLAYERSTARTPOSITIONS["player" + smallestPlayerNumber][0].y,
+      Object.keys(rooms[roomName].players).length == 0,
+      smallestPlayerNumber
+    );
 
     if (Object.keys(rooms[roomName].players).length >= 2) {
       adminStartBtn(true, roomName);
@@ -116,19 +112,31 @@ io.on("connection", (socket) => {
   //CHANGE LE JOUEUR -------------------
   socket.on("changePlayerNumber", (param) => {});
 
-  socket.on("updateCharacterPosition", (data) => {
+  socket.on("movePlayer", (data, direction) => {
     let roomName = data.roomName;
+    let dx = 0,
+      dy = 0;
+    if (direction == "left") dx = -1;
+    else if (direction == "right") dx = 1;
+    else if (direction == "up") dy = -1;
+    else if (direction == "down") dy = 1;
+
     // Mettre à jour la position du joueur
-    rooms[roomName].players[socket.id].x = data.x;
-    rooms[roomName].players[socket.id].y = data.y;
-    rooms[roomName].players[socket.id].lastMove = Date.now();
-    // Envoyer les informations de mise à jour a tout les joueurs
-    io.emit("updateCharacterPosition", {
-      id: socket.id,
-      x: data.x,
-      y: data.y,
-      lastMove: Date.now(),
-    });
+    let returnfct = rooms[roomName].players[socket.id].move(
+      dx,
+      dy,
+      rooms[roomName].walls,
+      rooms[roomName].bombs
+    );
+    if (returnfct) {
+      // Envoyer les informations de mise à jour a tout les joueurs
+      io.to(roomName).emit("updateCharacterPosition", {
+        id: socket.id,
+        x: rooms[roomName].players[socket.id].x,
+        y: rooms[roomName].players[socket.id].y,
+        lastMove: Date.now(),
+      });
+    }
   });
 
   // Ajouter une bombe

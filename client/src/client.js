@@ -523,7 +523,8 @@ function checkArrowKeys(keys) {
     keys["z"] ||
     keys["q"] ||
     keys["s"] ||
-    keys["d"]
+    keys["d"] ||
+    keys["a"]
   );
 }
 
@@ -554,24 +555,68 @@ function placeBomb() {
 
 //Déplacer le joueur
 function movePlayer() {
-  const speed = 1; // 1px sur le jeu = 4px sur le canvas
+  const speed = 1;
 
   let lastKeyPressed = Object.keys(keys)[Object.keys(keys).length - 1];
 
   if (lastKeyPressed == " " || lastKeyPressed == "Enter") {
     lastKeyPressed = Object.keys(keys)[Object.keys(keys).length - 2];
   }
-
   // Click sur une touche
   if (lastKeyPressed == "ArrowLeft" || lastKeyPressed == "q") {
-    characters[sock.id].move(-speed, 0, walls, bombs);
+    // let returncollision;
+    // returncollision = characters[sock.id].move(-speed, 0, walls, bombs);
+    // if (returncollision) {
+    //   bombs[returncollision].propertie = "tapeLeft";
+    // }
+    sock.emit(
+      "movePlayer",
+      {
+        roomName: roomData.roomName,
+        x: characters[sock.id].x,
+        y: characters[sock.id].y,
+      },
+      "left"
+    );
   } else if (lastKeyPressed == "ArrowRight" || lastKeyPressed == "d") {
-    characters[sock.id].move(+speed, 0, walls, bombs);
+    sock.emit(
+      "movePlayer",
+      {
+        roomName: roomData.roomName,
+        x: characters[sock.id].x,
+        y: characters[sock.id].y,
+      },
+      "right"
+    );
   } else if (lastKeyPressed == "ArrowUp" || lastKeyPressed == "z") {
-    characters[sock.id].move(0, -speed, walls, bombs);
+    sock.emit(
+      "movePlayer",
+      {
+        roomName: roomData.roomName,
+        x: characters[sock.id].x,
+        y: characters[sock.id].y,
+      },
+      "up"
+    );
   } else if (lastKeyPressed == "ArrowDown" || lastKeyPressed == "s") {
-    characters[sock.id].move(0, +speed, walls, bombs);
+    sock.emit(
+      "movePlayer",
+      {
+        roomName: roomData.roomName,
+        x: characters[sock.id].x,
+        y: characters[sock.id].y,
+      },
+      "down"
+    );
+  } else if (lastKeyPressed == "a") {
+    for (const id in bombs) {
+      const bomb = bombs[id];
+      if (bomb.x == characters[sock.id].x && bomb.y == characters[sock.id].y) {
+        bomb.explosion = true;
+      }
+    }
   }
+
   if (keys[" "] || keys["Enter"]) {
     placeBomb();
   }
@@ -582,6 +627,7 @@ let updateTime = 0;
 let drawTime1 = 0;
 let moveCarpet = 0;
 let sprite = 0;
+let moveBomb = 0;
 
 function animate(currentTime) {
   // Calculer le temps écoulé depuis la dernière exécution de la fonction animate()
@@ -590,6 +636,7 @@ function animate(currentTime) {
   const deltaTime2 = currentTime - drawTime1;
   const deltaTime3 = currentTime - moveCarpet;
   const deltaTime4 = currentTime - sprite;
+  const deltaTime5 = currentTime - moveBomb;
 
   //update le sprite toutes les 100ms
   if (deltaTime4 >= 150) {
@@ -618,15 +665,18 @@ function animate(currentTime) {
   if (deltaTime2 >= 16) {
     drawGame();
     drawTime1 = currentTime;
-    // Si le joueur a bouger on envoie la position
-    if (checkArrowKeys(keys)) {
-      // Envoyer au serveur la position du joueur
-      sock.emit("updateCharacterPosition", {
-        roomName: roomData.roomName,
-        x: characters[sock.id].x,
-        y: characters[sock.id].y,
-      });
+  }
+
+  // Déplacer les bombes toutes les 75ms
+  if (deltaTime5 >= 10) {
+    for (const id in bombs) {
+      const bomb = bombs[id];
+      if (bomb.propertie == "tapeRight") bomb.move(2, 0);
+      if (bomb.propertie == "tapeLeft") bomb.move(-2, 0);
+      if (bomb.propertie == "tapeUp") bomb.move(0, -2);
+      if (bomb.propertie == "tapeDown") bomb.move(0, 2);
     }
+    moveBomb = currentTime;
   }
 
   // Déplacer le tapis toutes les 75ms - A mettre sur le serveur
