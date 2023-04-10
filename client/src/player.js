@@ -47,7 +47,6 @@ class Player {
 
   //pour animation si il bouge ou pas
   updateSprite() {
-    console.log(this.lastMove + " " + Date.now());
     if (this.frameY > 3 && this.lastMove < Date.now() - 100) {
       this.frameY = this.frameY - 4;
       this.frameCount = 3;

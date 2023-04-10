@@ -282,6 +282,12 @@ const updateSpeed = (speed, playerId) => {
   character.speed = speed;
 };
 
+const updateBomb = (bombParam, id) => {
+  const bomb = bombs[id];
+  bomb.x = bombParam.x;
+  bomb.y = bombParam.y;
+};
+
 const sock = io();
 //-----------------------LAUNCH-----------------------
 (() => {
@@ -310,6 +316,8 @@ const sock = io();
   sock.on("addWalls", addWalls);
 
   sock.on("addBomb", addBomb);
+
+  sock.on("updateBomb", updateBomb);
 
   sock.on("addItem", addItem);
 
@@ -555,8 +563,6 @@ function placeBomb() {
 
 //Déplacer le joueur
 function movePlayer() {
-  const speed = 1;
-
   let lastKeyPressed = Object.keys(keys)[Object.keys(keys).length - 1];
 
   if (lastKeyPressed == " " || lastKeyPressed == "Enter") {
@@ -627,7 +633,6 @@ let updateTime = 0;
 let drawTime1 = 0;
 let moveCarpet = 0;
 let sprite = 0;
-let moveBomb = 0;
 
 function animate(currentTime) {
   // Calculer le temps écoulé depuis la dernière exécution de la fonction animate()
@@ -636,7 +641,6 @@ function animate(currentTime) {
   const deltaTime2 = currentTime - drawTime1;
   const deltaTime3 = currentTime - moveCarpet;
   const deltaTime4 = currentTime - sprite;
-  const deltaTime5 = currentTime - moveBomb;
 
   //update le sprite toutes les 100ms
   if (deltaTime4 >= 150) {
@@ -665,18 +669,6 @@ function animate(currentTime) {
   if (deltaTime2 >= 16) {
     drawGame();
     drawTime1 = currentTime;
-  }
-
-  // Déplacer les bombes toutes les 75ms
-  if (deltaTime5 >= 10) {
-    for (const id in bombs) {
-      const bomb = bombs[id];
-      if (bomb.propertie == "tapeRight") bomb.move(2, 0);
-      if (bomb.propertie == "tapeLeft") bomb.move(-2, 0);
-      if (bomb.propertie == "tapeUp") bomb.move(0, -2);
-      if (bomb.propertie == "tapeDown") bomb.move(0, 2);
-    }
-    moveBomb = currentTime;
   }
 
   // Déplacer le tapis toutes les 75ms - A mettre sur le serveur

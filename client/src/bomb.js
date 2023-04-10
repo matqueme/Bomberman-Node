@@ -27,11 +27,6 @@ class Bomb {
     if (this.frameX < this.frameCount - 1) this.frameX++;
     else this.frameX = 0;
   }
-
-  move(dx, dy) {
-    this.x += dx;
-    this.y += dy;
-  }
 }
 
 export default Bomb;

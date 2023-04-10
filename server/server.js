@@ -136,6 +136,9 @@ io.on("connection", (socket) => {
         y: rooms[roomName].players[socket.id].y,
         lastMove: Date.now(),
       });
+      if (returnfct !== true) {
+        rooms[roomName].bombs[returnfct].changePropertie(dx, dy);
+      }
     }
   });
 
@@ -644,14 +647,28 @@ function onItem(room) {
   }
 }
 
+let moveBomb = 0;
 /*-------------------------------BOUCLE INFINI-------------------------------*/
 function gameLoop() {
+  const currentTime = Date.now(); // get the current time
+  const deltaTime = currentTime - moveBomb; // calculate the time since the last frame
+
   for (const roomId in rooms) {
     const room = rooms[roomId];
     updateBombs(room);
     updateExplosions(room);
     updateWallDestroy(room);
     onItem(room);
+
+    if (deltaTime >= 10) {
+      for (const id in room.bombs) {
+        const bomb = room.bombs[id];
+        if (bomb.move(room.walls, room.bombs, room.players)) {
+          io.to(room.roomData.roomName).emit("updateBomb", bomb, id);
+        }
+      }
+      moveBomb = currentTime;
+    }
   }
 
   // Répéter la boucle de jeu
@@ -679,6 +696,10 @@ function updateBombs(room) {
       Date.now() - bomb.timePlaced >= bomb.timeToExplode &&
       bomb.timeToExplode != -1
     ) {
+      //on centre la bombe sur la case la plus proche
+      bomb.x = Math.round((bomb.x - MAP.startLeft) / 16) * 16 + MAP.startLeft;
+      bomb.y = Math.round((bomb.y - MAP.startTop) / 16) * 16 + MAP.startTop;
+
       //on creer une date pour l'ensemble des explosions
       let date = Date.now();
       // Créer une explosion au centre

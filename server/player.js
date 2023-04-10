@@ -22,9 +22,16 @@ class Player {
 
     /*SPEED*/
     this.speed = 1; //vitesse de déplacement
-    this.bombType = 1;
+
+    /*BOMB*/
+    this.bombType = 6;
     this.bombMax = 1;
     this.bombRange = 1;
+
+    /*ITEMS*/
+    this.powerUp = 0;
+    this.kick = false;
+    this.glove = false;
   }
 
   move(dx, dy, walls, bombs) {
