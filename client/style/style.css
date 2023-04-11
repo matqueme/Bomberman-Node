@@ -498,16 +498,16 @@ img {
 
 .closeModal {
   position: absolute;
-  top: 0;
+  top: 20px;
   right: 0;
-  font-size: 2rem;
-  color: #fff;
   cursor: pointer;
   padding: 10px;
+  width: 3vh;
+  fill: #fff;
 }
 
 .closeModal:hover {
-  color: #ff0000;
+  fill: #fed766;
 }
 
 .modalParam {
@@ -540,4 +540,26 @@ img {
   color: #fff;
   border: none;
   cursor: pointer;
+}
+
+.btnparamauto {
+  padding: 5px 10px;
+  background-color: #0d1821;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  border: 1px solid #fed766;
+  border-radius: 5px;
+}
+
+.toucheliste {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  background-color: #0d1821;
+  color: #fff;
+  padding: 10px;
 }
