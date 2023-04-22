@@ -1,2 +1,36 @@
-1 - Objectif faire fonctionner les animation et les personnages
-2 - objectif faire fonctionner le menu et le score
+Finir la génération pour spike
+
+Item et statistiques :
+- Stocker les items pour les réafficher une fois mort
+- Coup de pieds : si on appuie sur une touche il s'arrête X (centrer sur la case !)
+- La main : tu appuie pour porter (même touche que poser : A) on peut prendre que si on est dessus la bombe sinon c'est mort si on lance sur un mur saute de 2 en 2 
+- Coup de boxe ⚈ : on peut taper avec une touche la bombe va de 2 en 2 si elle va sur un murs (comme avant) ne marche pas si on est dessus avec Y
+- Ligne de bombe ⚈: Place une ligne de bombe jusqu'à ce qu'on rencontre un mure avec Y, la longueur de la ligne est le maximum de bombe qu'un joueur possède
+-Bouclier ⚈ : Y
+-Crane
+
+Modules différents :
+- Tapis : la bombe explose a une coordonnées fixe
+- Trapdoor : téléporte au dessus du terrain 
+- Flèches qui change la direction des bombes qui sont kiked
+- Des balançoire qui expédie des bombes et des joueurs (s'il quitte le terrain ils sont éliminés)
+- Pics qui tue 
+- Couronne
+- Bloc de couleurs
+
+Ajouter les bombes
+- celle qui explose au passage
+- celle qui explose au btn
+
+Changer de joueur, et mettre a jour la liste
+Faire des teams paramètres et fonctionnelle 
+
+Géré le start 
+
+Paramètres :
+-jackpot
+-handicap 
+-btn si on est en version mobile --> vérifier les performance ...
+-parametre de la game en version flottante si la page est trop petite
+
+Revoir le code et le simplifier 

@@ -55,6 +55,98 @@ let tapis = [];
 
 let map = {};
 
+let buttonMappings = {
+  A: "a",
+  B: "z",
+  X: "s",
+  Y: "d",
+  UP: "ArrowUp",
+  DOWN: "ArrowDown",
+  LEFT: "ArrowLeft",
+  RIGHT: "ArrowRight",
+};
+
+/*-----------------------PARAMETRE TOUCHE-----------------------*/
+
+const modal = document.querySelector(".modalParam");
+const closeModal = modal.querySelector(".closeModal");
+const annuler = modal.querySelector(".btnParamCancel");
+const btnParamSave = modal.querySelector(".btnParamSave");
+const svgTrigger = document.querySelector(".parameters");
+
+const config1 = modal.querySelector("#config1");
+const config2 = modal.querySelector("#config2");
+const config3 = modal.querySelector("#config3");
+
+closeModal.addEventListener("click", function () {
+  modal.style.display = "none";
+});
+
+annuler.addEventListener("click", function () {
+  modal.style.display = "none";
+});
+
+btnParamSave.addEventListener("click", function () {
+  buttonMappings.UP = document.getElementById("Haut").value;
+  buttonMappings.DOWN = document.getElementById("Bas").value;
+  buttonMappings.LEFT = document.getElementById("Gauche").value;
+  buttonMappings.RIGHT = document.getElementById("Droite").value;
+  buttonMappings.B = document.getElementById("B").value;
+  buttonMappings.A = document.getElementById("A").value;
+  buttonMappings.X = document.getElementById("X").value;
+  buttonMappings.Y = document.getElementById("Y").value;
+  modal.style.display = "none";
+});
+
+function changeInput() {
+  document.getElementById("Haut").value = buttonMappings.UP;
+  document.getElementById("Bas").value = buttonMappings.DOWN;
+  document.getElementById("Gauche").value = buttonMappings.LEFT;
+  document.getElementById("Droite").value = buttonMappings.RIGHT;
+  document.getElementById("B").value = buttonMappings.B;
+  document.getElementById("A").value = buttonMappings.A;
+  document.getElementById("X").value = buttonMappings.X;
+  document.getElementById("Y").value = buttonMappings.Y;
+}
+
+svgTrigger.addEventListener("click", function () {
+  modal.style.display = "block";
+  changeInput();
+});
+
+config1.addEventListener("click", function () {
+  document.getElementById("Haut").value = "ArrowUp";
+  document.getElementById("Bas").value = "ArrowDown";
+  document.getElementById("Gauche").value = "ArrowLeft";
+  document.getElementById("Droite").value = "ArrowRight";
+  document.getElementById("B").value = "a";
+  document.getElementById("A").value = "z";
+  document.getElementById("X").value = "s";
+  document.getElementById("Y").value = "d";
+});
+
+config2.addEventListener("click", function () {
+  document.getElementById("Haut").value = "z";
+  document.getElementById("Bas").value = "q";
+  document.getElementById("Gauche").value = "s";
+  document.getElementById("Droite").value = "d";
+  document.getElementById("B").value = "ArrowUp";
+  document.getElementById("A").value = "ArrowDown";
+  document.getElementById("X").value = "ArrowLeft";
+  document.getElementById("Y").value = "ArrowRight";
+});
+
+config3.addEventListener("click", function () {
+  document.getElementById("Haut").value = "ArrowUp";
+  document.getElementById("Bas").value = "ArrowDown";
+  document.getElementById("Gauche").value = "ArrowLeft";
+  document.getElementById("Droite").value = "ArrowRight";
+  document.getElementById("B").value = "z";
+  document.getElementById("A").value = "q";
+  document.getElementById("X").value = "s";
+  document.getElementById("Y").value = "d";
+});
+
 /*-----------------------SOCKET-----------------------*/
 
 // Chat affichage
@@ -524,15 +616,10 @@ function drawGame() {
 // Vérifier si le joueur appuie sur l'une des touches fléchées.
 function checkArrowKeys(keys) {
   return (
-    keys["ArrowUp"] ||
-    keys["ArrowDown"] ||
-    keys["ArrowLeft"] ||
-    keys["ArrowRight"] ||
-    keys["z"] ||
-    keys["q"] ||
-    keys["s"] ||
-    keys["d"] ||
-    keys["a"]
+    buttonMappings.UP in keys ||
+    buttonMappings.DOWN in keys ||
+    buttonMappings.LEFT in keys ||
+    buttonMappings.RIGHT in keys
   );
 }
 
@@ -656,9 +743,8 @@ function animate(currentTime) {
   }
 
   if (characters[sock.id]) {
-    // Mettre à jour la position des utilisateurs toutes les 12ms
     if (deltaTime >= characters[sock.id].getSpeed) {
-      if (checkArrowKeys(keys) || keys[" "] || keys["Enter"]) {
+      if (checkArrowKeys(keys)) {
         movePlayer();
       }
       updateTime = currentTime;

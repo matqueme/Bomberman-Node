@@ -282,7 +282,7 @@
     <div id="modalParam" class="modalParam">
       <div class="modalContent">
         <h2>Paramètres</h2>
-        <p>Changer la disposition des touches</p>
+        <p class="paramsubtitle">Changer la disposition des touches</p>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           id="Calque_2"
@@ -296,26 +296,52 @@
             />
           </g>
         </svg>
-        <button class="btnparamauto">Paramètre 1</button>
-        <button class="btnparamauto">Paramètre 2</button>
-        <button class="btnparamauto">Paramètre 3</button>
+        <div class="btnparamauto">
+          <button class="config" id="config1">Configuration 1</button>
+          <button class="config" id="config2">Configuration 2</button>
+          <button class="config" id="config3">Configuration 3</button>
+        </div>
         <div class="toucheliste">
-          <label for="A">A</label>
-          <input type="text" id="A" />
-          <label for="B">B</label>
-          <input type="text" id="B" />
-          <label for="X">X</label>
-          <input type="text" id="X" />
-          <label for="Y">Y</label>
-          <input type="text" id="Y" />
-          <label for="Haut">Haut</label>
-          <input type="text" id="Haut" />
-          <label for="Bas">Bas</label>
-          <input type="text" id="Bas" />
-          <label for="Gauche">Gauche</label>
-          <input type="text" id="Gauche" />
-          <label for="Droite">Droite</label>
-          <input type="text" id="Droite" />
+          <div class="toucheGauche">
+            <div>
+              <label for="A">A :</label>
+              <input type="text" id="A" />
+            </div>
+            <div>
+              <label for="B">B :</label>
+              <input type="text" id="B" />
+            </div>
+            <div>
+              <label for="X">X :</label>
+              <input type="text" id="X" />
+            </div>
+            <div>
+              <label for="Y">Y :</label>
+              <input type="text" id="Y" />
+            </div>
+          </div>
+          <div class="toucheDroite">
+            <div>
+              <label for="Haut">Haut :</label>
+              <input type="text" id="Haut" />
+            </div>
+            <div>
+              <label for="Bas">Bas :</label>
+              <input type="text" id="Bas" />
+            </div>
+            <div>
+              <label for="Gauche">Gauche :</label>
+              <input type="text" id="Gauche" />
+            </div>
+            <div>
+              <label for="Droite">Droite :</label>
+              <input type="text" id="Droite" />
+            </div>
+          </div>
+        </div>
+        <div class="btnParam2">
+          <button class="btnParamCancel">Annuler</button>
+          <button class="btnParamSave">Sauvegarder</button>
         </div>
       </div>
     </div>
@@ -361,7 +387,6 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="./src/drop.js"></script>
-  <script src="./src/parameters.js"></script>
 
   <script type="module" src="src/client.js"></script>
 
