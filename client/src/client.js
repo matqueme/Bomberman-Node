@@ -86,66 +86,147 @@ annuler.addEventListener("click", function () {
   modal.style.display = "none";
 });
 
+//Changer les fleches en touches
+function tryArrow(key) {
+  if (key === "↑") {
+    return "ArrowUp";
+  }
+  if (key === "↓") {
+    return "ArrowDown";
+  }
+  if (key === "←") {
+    return "ArrowLeft";
+  }
+  if (key === "→") {
+    return "ArrowRight";
+  }
+  return key;
+}
+
+//Afficher les fleches
+function tryArrowDisplay(key) {
+  if (key === "ArrowUp") {
+    return "↑";
+  }
+  if (key === "ArrowDown") {
+    return "↓";
+  }
+  if (key === "ArrowLeft") {
+    return "←";
+  }
+  if (key === "ArrowRight") {
+    return "→";
+  }
+  return key;
+}
+
+//Sauvegarder les parametres
 btnParamSave.addEventListener("click", function () {
-  buttonMappings.UP = document.getElementById("Haut").value;
-  buttonMappings.DOWN = document.getElementById("Bas").value;
-  buttonMappings.LEFT = document.getElementById("Gauche").value;
-  buttonMappings.RIGHT = document.getElementById("Droite").value;
-  buttonMappings.B = document.getElementById("B").value;
-  buttonMappings.A = document.getElementById("A").value;
-  buttonMappings.X = document.getElementById("X").value;
-  buttonMappings.Y = document.getElementById("Y").value;
+  buttonMappings.UP = tryArrow(document.getElementById("Haut").textContent);
+  buttonMappings.DOWN = tryArrow(document.getElementById("Bas").textContent);
+  buttonMappings.LEFT = tryArrow(document.getElementById("Gauche").textContent);
+  buttonMappings.RIGHT = tryArrow(
+    document.getElementById("Droite").textContent
+  );
+  buttonMappings.B = tryArrow(document.getElementById("B").textContent);
+  buttonMappings.A = tryArrow(document.getElementById("A").textContent);
+  buttonMappings.X = tryArrow(document.getElementById("X").textContent);
+  buttonMappings.Y = tryArrow(document.getElementById("Y").textContent);
   modal.style.display = "none";
 });
 
+//Changer les input a l'ouverture de la modal
 function changeInput() {
-  document.getElementById("Haut").value = buttonMappings.UP;
-  document.getElementById("Bas").value = buttonMappings.DOWN;
-  document.getElementById("Gauche").value = buttonMappings.LEFT;
-  document.getElementById("Droite").value = buttonMappings.RIGHT;
-  document.getElementById("B").value = buttonMappings.B;
-  document.getElementById("A").value = buttonMappings.A;
-  document.getElementById("X").value = buttonMappings.X;
-  document.getElementById("Y").value = buttonMappings.Y;
+  document.getElementById("Haut").textContent = tryArrowDisplay(
+    buttonMappings.UP
+  );
+  document.getElementById("Bas").textContent = tryArrowDisplay(
+    buttonMappings.DOWN
+  );
+  document.getElementById("Gauche").textContent = tryArrowDisplay(
+    buttonMappings.LEFT
+  );
+  document.getElementById("Droite").textContent = tryArrowDisplay(
+    buttonMappings.RIGHT
+  );
+  document.getElementById("B").textContent = tryArrowDisplay(buttonMappings.B);
+  document.getElementById("A").textContent = tryArrowDisplay(buttonMappings.A);
+  document.getElementById("X").textContent = tryArrowDisplay(buttonMappings.X);
+  document.getElementById("Y").textContent = tryArrowDisplay(buttonMappings.Y);
 }
 
+//Ouvrir la modal
 svgTrigger.addEventListener("click", function () {
   modal.style.display = "block";
   changeInput();
 });
 
-config1.addEventListener("click", function () {
-  document.getElementById("Haut").value = "ArrowUp";
-  document.getElementById("Bas").value = "ArrowDown";
-  document.getElementById("Gauche").value = "ArrowLeft";
-  document.getElementById("Droite").value = "ArrowRight";
-  document.getElementById("B").value = "a";
-  document.getElementById("A").value = "z";
-  document.getElementById("X").value = "s";
-  document.getElementById("Y").value = "d";
-});
+//Changer les input au click
+function assignKey(buttonId) {
+  let button = document.getElementById(buttonId);
+  button.addEventListener("click", function () {
+    button.textContent = "En attente";
+    let onKeyPress = function (event) {
+      button.textContent = tryArrowDisplay(event.key);
+      document.removeEventListener("keydown", onKeyPress);
+    };
+    document.addEventListener("keydown", onKeyPress);
+  });
+}
 
-config2.addEventListener("click", function () {
-  document.getElementById("Haut").value = "z";
-  document.getElementById("Bas").value = "q";
-  document.getElementById("Gauche").value = "s";
-  document.getElementById("Droite").value = "d";
-  document.getElementById("B").value = "ArrowUp";
-  document.getElementById("A").value = "ArrowDown";
-  document.getElementById("X").value = "ArrowLeft";
-  document.getElementById("Y").value = "ArrowRight";
-});
+assignKey("A");
+assignKey("B");
+assignKey("X");
+assignKey("Y");
+assignKey("Haut");
+assignKey("Bas");
+assignKey("Gauche");
+assignKey("Droite");
 
-config3.addEventListener("click", function () {
-  document.getElementById("Haut").value = "ArrowUp";
-  document.getElementById("Bas").value = "ArrowDown";
-  document.getElementById("Gauche").value = "ArrowLeft";
-  document.getElementById("Droite").value = "ArrowRight";
-  document.getElementById("B").value = "z";
-  document.getElementById("A").value = "q";
-  document.getElementById("X").value = "s";
-  document.getElementById("Y").value = "d";
-});
+const keyMap = {
+  config1: {
+    Haut: "ArrowUp",
+    Bas: "ArrowDown",
+    Gauche: "ArrowLeft",
+    Droite: "ArrowRight",
+    B: "a",
+    A: "z",
+    X: "s",
+    Y: "d",
+  },
+  config2: {
+    Haut: "z",
+    Bas: "q",
+    Gauche: "s",
+    Droite: "d",
+    B: "ArrowUp",
+    A: "ArrowDown",
+    X: "ArrowLeft",
+    Y: "ArrowRight",
+  },
+  config3: {
+    Haut: "ArrowUp",
+    Bas: "ArrowDown",
+    Gauche: "ArrowLeft",
+    Droite: "ArrowRight",
+    B: "z",
+    A: "q",
+    X: "s",
+    Y: "d",
+  },
+};
+
+function setConfig(config) {
+  const keys = Object.keys(keyMap[config]);
+  keys.forEach((key) => {
+    const value = keyMap[config][key];
+    document.getElementById(key).textContent = value;
+  });
+}
+
+config1.addEventListener("click", () => setConfig("config1"));
+config2.addEventListener("click", () => setConfig("config2"));
+config3.addEventListener("click", () => setConfig("config3"));
 
 /*-----------------------SOCKET-----------------------*/
 
@@ -656,12 +737,7 @@ function movePlayer() {
     lastKeyPressed = Object.keys(keys)[Object.keys(keys).length - 2];
   }
   // Click sur une touche
-  if (lastKeyPressed == "ArrowLeft" || lastKeyPressed == "q") {
-    // let returncollision;
-    // returncollision = characters[sock.id].move(-speed, 0, walls, bombs);
-    // if (returncollision) {
-    //   bombs[returncollision].propertie = "tapeLeft";
-    // }
+  if (lastKeyPressed === buttonMappings.LEFT) {
     sock.emit(
       "movePlayer",
       {
@@ -671,7 +747,7 @@ function movePlayer() {
       },
       "left"
     );
-  } else if (lastKeyPressed == "ArrowRight" || lastKeyPressed == "d") {
+  } else if (lastKeyPressed === buttonMappings.RIGHT) {
     sock.emit(
       "movePlayer",
       {
@@ -681,7 +757,7 @@ function movePlayer() {
       },
       "right"
     );
-  } else if (lastKeyPressed == "ArrowUp" || lastKeyPressed == "z") {
+  } else if (lastKeyPressed === buttonMappings.UP) {
     sock.emit(
       "movePlayer",
       {
@@ -691,7 +767,7 @@ function movePlayer() {
       },
       "up"
     );
-  } else if (lastKeyPressed == "ArrowDown" || lastKeyPressed == "s") {
+  } else if (lastKeyPressed === buttonMappings.DOWN) {
     sock.emit(
       "movePlayer",
       {
@@ -701,14 +777,16 @@ function movePlayer() {
       },
       "down"
     );
-  } else if (lastKeyPressed == "a") {
-    for (const id in bombs) {
-      const bomb = bombs[id];
-      if (bomb.x == characters[sock.id].x && bomb.y == characters[sock.id].y) {
-        bomb.explosion = true;
-      }
-    }
   }
+  // } else if (lastKeyPressed == "a") {
+  //   for (const id in bombs) {
+  //     const bomb = bombs[id];
+  //     if (bomb.x == characters[sock.id].x && bomb.y == characters[sock.id].y) {
+  //       bomb.explosion = true;
+  //     }
+  //   }
+  // }
+  //Je sais plus à quoi ça sert
 
   if (keys[" "] || keys["Enter"]) {
     placeBomb();
