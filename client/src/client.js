@@ -53,8 +53,6 @@ let items = {};
 
 let tapis = [];
 
-let map = {};
-
 let buttonMappings = {
   A: "a",
   B: "z",
@@ -423,24 +421,24 @@ const startgame = (param) => {
   roomData.gameStarted = param;
 };
 
-// Met à jour la position d'un joueur
+// Met à jour la position d'un joueur sur le canvas
 const updateCharacterPosition = (param) => {
   const character = characters[param.id];
   character.lastMove = param.lastMove;
 
-  if (character.x > param.x && character.frameY != 5) {
+  if (param.direction === "left" && character.frameY != 5) {
     character.frameY = 5;
     character.frameCount = 6;
     character.frameX = 0;
-  } else if (character.x < param.x && character.frameY != 6) {
+  } else if (param.direction === "right" && character.frameY != 6) {
     character.frameY = 6;
     character.frameCount = 6;
     character.frameX = 0;
-  } else if (character.y > param.y && character.frameY != 7) {
+  } else if (param.direction === "up" && character.frameY != 7) {
     character.frameY = 7;
     character.frameCount = 6;
     character.frameX = 0;
-  } else if (character.y < param.y && character.frameY != 4) {
+  } else if (param.direction === "down" && character.frameY != 4) {
     character.frameY = 4;
     character.frameCount = 6;
     character.frameX = 0;
@@ -511,12 +509,12 @@ const sock = io();
   }); // listen for an item to be picked
 
   //-----------------------SEND-----------------------
-  // Page de chat - Envoyer un message
+  // Envoyer un message
   document
     .querySelector("#chat-send")
     .addEventListener("submit", onChatSubmitted(sock));
 
-  // Page de connexion - Envoyer le nom et la room
+  // Envoyer le nom et la room
   document
     .querySelector("#username_form")
     .addEventListener("submit", onUsernameSubmitted(sock));
@@ -692,18 +690,6 @@ function drawGame() {
   ctx.drawImage(wallUnbreakableImage, 0, 0, 256, 384);
 }
 
-/*--------------------------MOUVEMENT DU PERSONNAGE--------------------------- */
-
-// Vérifier si le joueur appuie sur l'une des touches fléchées.
-function checkArrowKeys(keys) {
-  return (
-    buttonMappings.UP in keys ||
-    buttonMappings.DOWN in keys ||
-    buttonMappings.LEFT in keys ||
-    buttonMappings.RIGHT in keys
-  );
-}
-
 /*--------------------------BOMBE--------------------------- */
 function placeBomb() {
   //Centrer la bombe sur la grille
@@ -729,72 +715,74 @@ function placeBomb() {
   });
 }
 
-//Déplacer le joueur
-function movePlayer() {
-  let lastKeyPressed;
-  Object.values(buttonMappings)
-    .slice(-4)
+/*--------------------------CHECK BUTTON--------------------------- */
+
+// Vérifier si le joueur appuie sur l'une des touches fléchées.
+function checkArrowKeys(keys) {
+  return (
+    buttonMappings.UP in keys ||
+    buttonMappings.DOWN in keys ||
+    buttonMappings.LEFT in keys ||
+    buttonMappings.RIGHT in keys
+  );
+}
+
+function checkButtonKeys(keys) {
+  return (
+    buttonMappings.A in keys ||
+    buttonMappings.B in keys ||
+    buttonMappings.X in keys ||
+    buttonMappings.Y in keys
+  );
+}
+
+function typeOfButton(keyObj) {
+  let lastKeyPressed = null;
+  Object.keys(keys)
+    .filter((key) => keys[key])
     .reverse()
     .forEach((key) => {
-      if (keys[key]) {
+      if (lastKeyPressed === null && keyObj.includes(key)) {
         lastKeyPressed = key;
       }
     });
+  return lastKeyPressed;
+}
 
+/*--------------------------ACTION DU JOUEUR--------------------------- */
+
+//Déplacer le joueur
+function movePlayer() {
+  const lastFourKeys = Object.values(buttonMappings).slice(-4);
+
+  let lastKeyPressed = typeOfButton(lastFourKeys);
   // Click sur une touche
   if (lastKeyPressed === buttonMappings.LEFT) {
-    sock.emit(
-      "movePlayer",
-      {
-        roomName: roomData.roomName,
-        x: characters[sock.id].x,
-        y: characters[sock.id].y,
-      },
-      "left"
-    );
+    sock.emit("movePlayer", { roomName: roomData.roomName }, "left");
   } else if (lastKeyPressed === buttonMappings.RIGHT) {
-    sock.emit(
-      "movePlayer",
-      {
-        roomName: roomData.roomName,
-        x: characters[sock.id].x,
-        y: characters[sock.id].y,
-      },
-      "right"
-    );
+    sock.emit("movePlayer", { roomName: roomData.roomName }, "right");
   } else if (lastKeyPressed === buttonMappings.UP) {
-    sock.emit(
-      "movePlayer",
-      {
-        roomName: roomData.roomName,
-        x: characters[sock.id].x,
-        y: characters[sock.id].y,
-      },
-      "up"
-    );
+    sock.emit("movePlayer", { roomName: roomData.roomName }, "up");
   } else if (lastKeyPressed === buttonMappings.DOWN) {
-    sock.emit(
-      "movePlayer",
-      {
-        roomName: roomData.roomName,
-        x: characters[sock.id].x,
-        y: characters[sock.id].y,
-      },
-      "down"
-    );
+    sock.emit("movePlayer", { roomName: roomData.roomName }, "down");
   }
-  // } else if (lastKeyPressed == "a") {
-  //   for (const id in bombs) {
-  //     const bomb = bombs[id];
-  //     if (bomb.x == characters[sock.id].x && bomb.y == characters[sock.id].y) {
-  //       bomb.explosion = true;
-  //     }
-  //   }
-  // }
-  //Je sais plus à quoi ça sert
+}
 
-  if (keys[" "] || keys["Enter"]) {
+//Click sur les autres boutons
+function pushButton() {
+  const firstFourKeys = Object.values(buttonMappings).slice(0, 4);
+
+  let lastKeyPressed = typeOfButton(firstFourKeys);
+
+  if (lastKeyPressed === buttonMappings.A || lastKeyPressed === " ") {
     placeBomb();
+    sock.emit("pushA", { roomName: roomData.roomName });
+  } else if (lastKeyPressed === buttonMappings.B) {
+    sock.emit("pushB", { roomName: roomData.roomName });
+  } else if (lastKeyPressed === buttonMappings.X) {
+    sock.emit("pushX", { roomName: roomData.roomName });
+  } else if (lastKeyPressed === buttonMappings.Y) {
+    sock.emit("pushY", { roomName: roomData.roomName });
   }
 }
 
@@ -814,12 +802,14 @@ function animate(currentTime) {
   const deltaTime4 = currentTime - sprite;
   const deltaTime5 = currentTime - keysTime;
 
-  //update le sprite toutes les 100ms
+  // Update le sprite toutes les 100ms
   if (deltaTime4 >= 150) {
+    //PLAYER
     for (const id in characters) {
       const character = characters[id];
       character.updateSprite();
     }
+    //BOMB
     for (const id in bombs) {
       const bomb = bombs[id];
       bomb.updateSprite();
@@ -843,25 +833,10 @@ function animate(currentTime) {
   }
 
   if (deltaTime5 >= 100) {
-    let lastKeyPressed = Object.keys(keys)[Object.keys(keys).length - 1];
-    if (lastKeyPressed === buttonMappings.A) {
-      sock.emit("pushA", {
-        roomName: roomData.roomName,
-      });
-    } else if (lastKeyPressed === buttonMappings.B) {
-      sock.emit("pushB", {
-        roomName: roomData.roomName,
-      });
-    } else if (lastKeyPressed === buttonMappings.X) {
-      sock.emit("pushX", {
-        roomName: roomData.roomName,
-      });
-    } else if (lastKeyPressed === buttonMappings.Y) {
-      sock.emit("pushY", {
-        roomName: roomData.roomName,
-      });
+    if (checkButtonKeys(keys)) {
+      pushButton();
+      keysTime = currentTime;
     }
-    keysTime = currentTime;
   }
 
   // Déplacer le tapis toutes les 75ms - A mettre sur le serveur

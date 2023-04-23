@@ -128,18 +128,39 @@ io.on("connection", (socket) => {
       rooms[roomName].walls,
       rooms[roomName].bombs
     );
-    if (returnfct) {
-      // Envoyer les informations de mise à jour a tout les joueurs
-      io.to(roomName).emit("updateCharacterPosition", {
-        id: socket.id,
-        x: rooms[roomName].players[socket.id].x,
-        y: rooms[roomName].players[socket.id].y,
-        lastMove: Date.now(),
-      });
-      if (returnfct !== true) {
-        rooms[roomName].bombs[returnfct].changePropertie(dx, dy);
-      }
+
+    // Envoyer les informations de mise à jour a tout les joueurs
+    io.to(roomName).emit("updateCharacterPosition", {
+      id: socket.id,
+      x: rooms[roomName].players[socket.id].x,
+      y: rooms[roomName].players[socket.id].y,
+      lastMove: Date.now(),
+      direction: direction,
+    });
+
+    if (returnfct && returnfct !== true) {
+      rooms[roomName].bombs[returnfct].changePropertie(dx, dy);
     }
+  });
+
+  socket.on("pushA", (data) => {
+    let roomName = data.roomName;
+    console.log("PushA");
+  });
+
+  socket.on("pushB", (data) => {
+    let roomName = data.roomName;
+    console.log("PushB");
+  });
+
+  socket.on("pushX", (data) => {
+    let roomName = data.roomName;
+    console.log("PushX");
+  });
+
+  socket.on("pushY", (data) => {
+    let roomName = data.roomName;
+    console.log("PushY");
   });
 
   // Ajouter une bombe
