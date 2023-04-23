@@ -731,11 +731,16 @@ function placeBomb() {
 
 //Déplacer le joueur
 function movePlayer() {
-  let lastKeyPressed = Object.keys(keys)[Object.keys(keys).length - 1];
+  let lastKeyPressed;
+  Object.values(buttonMappings)
+    .slice(-4)
+    .reverse()
+    .forEach((key) => {
+      if (keys[key]) {
+        lastKeyPressed = key;
+      }
+    });
 
-  if (lastKeyPressed == " " || lastKeyPressed == "Enter") {
-    lastKeyPressed = Object.keys(keys)[Object.keys(keys).length - 2];
-  }
   // Click sur une touche
   if (lastKeyPressed === buttonMappings.LEFT) {
     sock.emit(
@@ -798,6 +803,7 @@ let updateTime = 0;
 let drawTime1 = 0;
 let moveCarpet = 0;
 let sprite = 0;
+let keysTime = 0;
 
 function animate(currentTime) {
   // Calculer le temps écoulé depuis la dernière exécution de la fonction animate()
@@ -806,6 +812,7 @@ function animate(currentTime) {
   const deltaTime2 = currentTime - drawTime1;
   const deltaTime3 = currentTime - moveCarpet;
   const deltaTime4 = currentTime - sprite;
+  const deltaTime5 = currentTime - keysTime;
 
   //update le sprite toutes les 100ms
   if (deltaTime4 >= 150) {
@@ -833,6 +840,28 @@ function animate(currentTime) {
   if (deltaTime2 >= 16) {
     drawGame();
     drawTime1 = currentTime;
+  }
+
+  if (deltaTime5 >= 100) {
+    let lastKeyPressed = Object.keys(keys)[Object.keys(keys).length - 1];
+    if (lastKeyPressed === buttonMappings.A) {
+      sock.emit("pushA", {
+        roomName: roomData.roomName,
+      });
+    } else if (lastKeyPressed === buttonMappings.B) {
+      sock.emit("pushB", {
+        roomName: roomData.roomName,
+      });
+    } else if (lastKeyPressed === buttonMappings.X) {
+      sock.emit("pushX", {
+        roomName: roomData.roomName,
+      });
+    } else if (lastKeyPressed === buttonMappings.Y) {
+      sock.emit("pushY", {
+        roomName: roomData.roomName,
+      });
+    }
+    keysTime = currentTime;
   }
 
   // Déplacer le tapis toutes les 75ms - A mettre sur le serveur
