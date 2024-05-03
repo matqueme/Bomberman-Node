@@ -110,7 +110,7 @@ io.on("connection", (socket) => {
   }); //envoie un message a tt le monde meme l'utilisateur
 
   //CHANGE LE JOUEUR -------------------
-  socket.on("changePlayerNumber", (param) => {});
+  socket.on("changePlayerNumber", (param) => { });
 
   socket.on("movePlayer", (data, direction) => {
     let roomName = data.roomName;
@@ -298,8 +298,7 @@ io.on("connection", (socket) => {
 
         // On supprime le joueur de la room
         console.log(
-          `Le joueur "${
-            room.players[socket.id].name
+          `Le joueur "${room.players[socket.id].name
           }" a été supprimé de la room "${roomName}"`
         );
         delete room.players[socket.id];
@@ -903,14 +902,14 @@ function explosionDangerouse(bomb, room, date) {
       x === 32
         ? explodeDirection(bomb.x + x, bomb.y + y, bomb, room, date, 4, "left")
         : x === -32
-        ? explodeDirection(bomb.x + x, bomb.y + y, bomb, room, date, 4, "right")
-        : null;
+          ? explodeDirection(bomb.x + x, bomb.y + y, bomb, room, date, 4, "right")
+          : null;
 
       y === 32
         ? explodeDirection(bomb.x + x, bomb.y + y, bomb, room, date, 4, "up")
         : y === -32
-        ? explodeDirection(bomb.x + x, bomb.y + y, bomb, room, date, 4, "down")
-        : null;
+          ? explodeDirection(bomb.x + x, bomb.y + y, bomb, room, date, 4, "down")
+          : null;
     }
   });
   //Explosion aux extrémité de la bombe
