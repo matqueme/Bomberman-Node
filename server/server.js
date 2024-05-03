@@ -225,6 +225,8 @@ io.on("connection", (socket) => {
 
     // Envoie la bombe à tout les joueurs dans la room
     io.to(roomName).emit("addBomb", bomb);
+
+    // bomb.moveBounceSide();
   });
 
   //--------------------Paramètres--------------------

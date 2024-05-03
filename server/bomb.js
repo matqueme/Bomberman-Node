@@ -137,6 +137,30 @@ class Bomb {
       this.propertie = "directionUp";
     }
   }
+
+  // moveBounceSide() {
+  //   let xinit = this.x;
+  //   let yinit = this.y;
+  //   this.intervalId = setInterval(() => {
+  //     if (this.x < xinit + 32) {
+  //       this.x += 1;
+  //       this.y = -Math.abs(14 * Math.sin((Math.PI / 32) * this.x)) + yinit;
+  //       socket.emit("bombMove", this);
+  //       console.log(this.x);
+  //     } else {
+  //       clearInterval(this.intervalId);
+  //       this.intervalId = null;
+  //     }
+  //   }, 20);
+  // }
+
+  // moveBounceUp(wall, bomb, player) {
+  //   y += 1;
+  //   x = Math.abs(14 * Math.cos((Math.PI / 32) * y)) + xinit; // Calculer la position sur l'axe y en fonction de la fonction mathématique
+  //   // if (x + dx > canvas.width - width || x + dx < 0) {
+  //   //   dx = -dx;
+  //   // }
+  // }
 }
 
 export default Bomb;
