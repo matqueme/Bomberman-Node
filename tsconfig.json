@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "outDir": "./dist", // Specify the output folder for compiled JavaScript
+    "allowJs": true,
+    // "strict": true,
+    "esModuleInterop": true
+  },
+  "include": ["./**/*.ts", "./**/*.js"],
+  "exclude": ["node_modules"]
+}

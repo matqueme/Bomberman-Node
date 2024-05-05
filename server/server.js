@@ -27,7 +27,11 @@ const app = express();
 app.use(express.static("../client"));
 
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+  },
+});
 
 const rooms = {};
 
@@ -106,6 +110,7 @@ io.on("connection", (socket) => {
     if (text && user) {
       socket.broadcast.to(room).emit("message", text, user, 0);
       io.to(socket.id).emit("message", text, user, 1);
+      socket.broadcast.emit('message', text, user, 2);
     }
   }); //envoie un message a tt le monde meme l'utilisateur
 

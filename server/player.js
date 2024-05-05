@@ -24,7 +24,7 @@ class Player {
     this.speed = 1; //vitesse de déplacement
 
     /*BOMB*/
-    this.bombType = 6;
+    this.bombType = 2;
     this.bombMax = 1;
     this.bombRange = 1;
 
